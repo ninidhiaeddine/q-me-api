@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@master
@@ -19,17 +19,21 @@ jobs:
     - name: Set up Python version
       uses: actions/setup-python@v1
       with:
-        python-version: '3.7'
+        python-version: '3.6'
 
-    - name: Build using AppService-Build
-      uses: azure/appservice-build@v2
-      with:
-        platform: python
-        platform-version: '3.7'
+    - name: Install Python dependencies
+      run: |
+        python -m venv env
+        .\env\Scripts\activate
+        pip install -r requirements.txt
+
+    - name: Zip the application files
+      run: Compress-Archive .\* app.zip
 
     - name: 'Deploy to Azure Web App'
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'q-me'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_b8a5d7bddc3d48a0aac40fe012425694 }}
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_d8d4a4771a5842608d4406f55229ad17 }}
+        package: '.\app.zip'
