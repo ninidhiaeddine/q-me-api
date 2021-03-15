@@ -1,160 +1,330 @@
 import json
 
 from flask import (
-    Blueprint, flash, request, session
+    Blueprint, flash, request, session, jsonify
 )
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import Guest, Establishment, Branch, db
+from models import Guest, Establishment, Branch
+import dal  # import data access layer
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
 @auth_bp.route('/register_guest', methods=['POST'])
 def register_guest():
-    # map json object to class object
-    guest = Guest(**request.json)
+    """
+    Expects the following JSON Object:
+    {
+        "name" : "your name here",
+        "phone_number" : "your phone number here"
+    }
 
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200,
+        "message" : "Guest Added to Database successfully!"
+    }
+    """
+
+    # initially, assume that there is no error
     error = None
 
-    # verify input info
-    if not guest.name:
-        error = 'Guest\'s Name is required.'
-    elif not guest.phone_number:
-        error = 'Guest\'s Phone Number is required.'
-    elif db.engine.execute(
-        'SELECT Id FROM Guests WHERE PhoneNumber = ?', (guest.phone_number)
-    ).fetchone() is not None:
-        error = 'Guest with Phone Number {} is already registered.'.format(
-            guest.phone_number)
+    # verify expected JSON:
+    if (
+        'name' not in request.json or
+        'phone_number' not in request.json
+    ):
+        error = "Invalid JSON Object."
+
+    if error is None:
+        # map json object to class object
+        guest = Guest(
+            None,
+            request.json['name'],
+            request.json['phone_number']
+        )
+
+        # verify input info
+        is_valid_tuple = guest.is_valid()
+        if is_valid_tuple[0]:
+            if dal.get_guest_by_phone_number(guest.phone_number) is not None:
+                error = 'Guest with Phone Number \'{}\' is already registered.'.format(
+                    guest.phone_number)
+        else:
+            error = is_valid_tuple[1]
 
     # add to database if everything is ok
     if error is None:
-        db.engine.execute(
-            'INSERT INTO Guests (Name, PhoneNumber) VALUES (?, ?)',
-            (guest.name, guest.phone_number)
+        dal.add_guest(guest)
+        return jsonify(
+            status=200,
+            message="Guest Added to Database successfully!"
         )
-        db.session.commit()
-        return "Added Guest to Database successfully!"
     else:
-        return error
+        return jsonify(
+            status=400,
+            message=error
+        )
 
 
 @auth_bp.route('/register_establishment', methods=['POST'])
 def register_establishment():
-    # map json object to class object
-    establishment = Establishment(**request.json)
+    """
+    Expects the following JSON Object:
+    {
+        "name" : "your establishment's name here",
+        "type" : 0,
+        "email" : "your email here",
+        "password" : "your password here"
+    }
 
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200,
+        "message" : "Establishment Added to Database successfully!"
+    }
+    """
+
+    # initially, assume that there is no error
     error = None
 
-    # verify input info
-    if not establishment.name:
-        error = 'Establishment\'s Name is required.'
-    elif not establishment.type:
-        error = 'Establishment\'s Type is required.'
-    elif not establishment.email:
-        error = 'Establishment\'s Email is required.'
-    elif not establishment.password:
-        error = 'Establishment\'s Password is required.'
-    elif db.engine.execute(
-        'SELECT Id FROM Establishments WHERE Name = ?', (establishment.name)
-    ).fetchone() is not None:
-        error = 'Establishment {} is already registered.'.format(
-            establishment.name)
+    # verify expected JSON:
+    if (
+        'name' not in request.json or
+        'type' not in request.json or
+        'email' not in request.json or
+        'password' not in request.json
+    ):
+        error = "Invalid JSON Object."
+
+    if error is None:
+        # map json object to class object
+        establishment = Establishment(
+            None,
+            request.json['name'],
+            request.json['type'],
+            request.json['email'],
+            request.json['password']
+        )
+
+        # initially, assume that there is no error
+        error = None
+
+        # verify input info
+        is_valid_tuple = establishment.is_valid()
+        if is_valid_tuple[0]:
+            if dal.get_establishment_by_name(establishment.name) is not None:
+                error = 'Establishment \'{}\' is already registered.'.format(
+                    establishment.name)
+        else:
+            error = is_valid_tuple[1]
 
     # add to database if everything is ok
     if error is None:
-        db.engine.execute(
-            'INSERT INTO Establishments (Name, Type, Email, Password) VALUES (?, ?, ?, ?)',
-            (establishment.name, establishment.type,
-             establishment.email, generate_password_hash(establishment.password))
+        dal.add_establishment(establishment)
+        return jsonify(
+            status=200,
+            message="Establishment Added to Database successfully!"
         )
-        db.session.commit()
-        return "Added Establishment to Database successfully!"
     else:
-        return error
+        return jsonify(
+            status=400,
+            message=error
+        )
 
 
 @auth_bp.route('/register_branch', methods=['POST'])
 def register_branch():
-    # map json object to class object
-    branch = Branch(**request.json)
+    """
+    Expects the following JSON Object:
+    {
+        "establishment_id" : your establishment name here,
+        "address" : "your branch's address here"
+    }
 
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200,
+        "message" : "Branch Added to Database successfully!"
+    }
+    """
+
+    # initially, assume that there is no error
     error = None
 
-    # verify input info
-    if not branch.establishment_id:
-        error = 'Branch\'s Establishment\'s ID is required.'
-    elif not branch.address:
-        error = 'Branch\'s Address is required.'
+    # verify expected JSON:
+    if (
+        'establishment_id' not in request.json or
+        'address' not in request.json
+    ):
+        error = "Invalid JSON Object."
+
+    if error is None:
+        # map json object to class object
+        branch = Branch(
+            None,
+            request.json['establishment_id'],
+            request.json['address']
+        )
+
+        # initially, assume that there is no error
+        error = None
+
+        # verify input info
+        is_valid_tuple = branch.is_valid()
+        if is_valid_tuple[0]:
+            if dal.get_establishment_by_id(branch.establishment_id) is None:
+                error = "The specified EstablishmentId is nonexistent. It violates \'Referential Integrity\'"
+        else:
+            error = is_valid_tuple[1]
 
     # add to database if everything is ok
     if error is None:
-        db.engine.execute(
-            'INSERT INTO Branches (EstablishmentId, Address) VALUES (?, ?, ?, ?)',
-            (branch.establishment_id, branch.address.type)
+        dal.add_branch(branch)
+        return jsonify(
+            status=200,
+            message="Branch Added to Database successfully!"
         )
-        db.session.commit()
-        return "Added Branch to Database successfully!"
     else:
-        return error
+        return jsonify(
+            status=400,
+            message=error
+        )
 
 
 @auth_bp.route('/login_guest', methods=['POST'])
 def login_guest():
-    # map json object to class object
-    guest = Guest(**request.json)
+    """
+    Expects the following JSON Object:
+    {
+        "name" : "your name here",
+        "phone_number" : "your phone number here"
+    }
 
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200,
+        "message" : "Guest logged in successfully!"
+    }
+    """
+
+    # initially, assume that there is no error
     error = None
 
-    # fetch the record from the database
-    guest_record = db.engine.execute(
-        'SELECT * FROM Guests WHERE Name = ?', (guest.name)
-    ).fetchone()
+    # verify expected JSON:
+    if (
+        'name' not in request.json or
+        'phone_number' not in request.json
+    ):
+        error = "Invalid JSON Object."
 
-    # verify credentials
-    if guest_record is None:
-        error = 'Incorrect Guest\'s Name.'
-    elif guest_record['PhoneNumber'] != guest.phone_number:
-        error = 'Incorrect Guest\'s Phone Number.'
+    if error is None:
+        # map json object to class object
+        guest = Guest(
+            None,
+            request.json['name'],
+            request.json['phone_number']
+        )
 
-    # start new session if evertthing is ok
+        # initially, assume that there is no error
+        error = None
+
+        # verify input info
+        is_valid_tuple = guest.is_valid()
+        if is_valid_tuple[0]:
+            guest_record = dal.get_guest_by_phone_number(guest.phone_number)
+            if guest_record is None or guest_record.name != guest.name:
+                error = 'Incorrect Guest\'s Credentials.'
+        else:
+            error = is_valid_tuple[1]
+
+    # start new session if everything is ok
     if error is None:
         session.clear()
-        session['guest_id'] = guest_record['Id']
-        return "Guest logged in Successfully!"
+        session['guest_id'] = guest_record.id
+        return jsonify(
+            status=200,
+            message="Guest logged in Successfully!"
+        )
     else:
-        return error
+        return jsonify(
+            status=400,
+            message=error
+        )
 
 
 @auth_bp.route('/login_establishment', methods=['POST'])
 def login_establishment():
-    # map json object to class object
-    establishment_dict = json.load(request.json)
-    establishment = Establishment(**establishment_dict)
+    """
+    Expects the following JSON Object:
+    {
+        "email" : "your email here",
+        "password" : "your password here"
+    }
 
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200,
+        "message" : "Establishment logged in successfully!"
+    }
+    """
+
+    # initially, assume that there is no error
     error = None
 
-    # fetch the record from the database
-    establishment_record = db.engine.execute(
-        'SELECT * FROM Establishments WHERE Email = ?', (establishment.email)
-    ).fetchone()
+    # verify expected JSON:
+    if (
+        'email' not in request.json or
+        'password' not in request.json
+    ):
+        error = "Invalid JSON Object."
 
-    # verify credentials
-    if establishment_record is None:
-        error = 'Incorrect Establishment\'s Email.'
-    elif not check_password_hash(establishment_record['Password'], establishment.password):
-        error = 'Incorrect Establishment\'s Password.'
+    if error is None:
+        # map json object to class object
+        establishment = Establishment(
+            None,
+            "N/A",
+            0,
+            request.json['email'],
+            request.json['password']
+        )
+
+        # initially, assume that there is no error
+        error = None
+
+        # verify input info
+        is_valid_tuple = establishment.is_valid()
+        if is_valid_tuple[0]:
+            establishment_record = dal.get_establishment_by_email(
+                establishment.email)
+            if (
+                establishment_record is None or
+                check_password_hash(
+                    establishment_record.password, establishment.password) == False
+            ):
+                error = 'Incorrect Establishment\'s Credentials.'
+        else:
+            error = is_valid_tuple[1]
 
     # start new session if evertthing is ok
     if error is None:
         session.clear()
-        session['establishment_id'] = establishment_record['Id']
-        return "Establishment logged in successfully!"
+        session['establishment_id'] = establishment_record.id
+        return jsonify(
+            status=200,
+            message="Establishment logged in successfully!"
+        )
     else:
-        return error
+        return jsonify(
+            status=400,
+            message=error
+        )
 
 
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['GET'])
 def logout():
     session.clear()
-    return "Logged out successfully!"
+    return jsonify(
+        status=200,
+        message="Logged out successfully!"
+    )

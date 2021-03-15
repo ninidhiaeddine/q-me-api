@@ -3,13 +3,15 @@ DROP TABLE IF EXISTS Branches;
 DROP TABLE IF EXISTS Establishments;
 
 
-CREATE TABLE Guests (
+CREATE TABLE Guests
+(
     Id INT NOT NULL PRIMARY KEY IDENTITY(1,1),
     Name VARCHAR(30) NOT NULL,
     PhoneNumber VARCHAR(20) NOT NULL
 );
 
-CREATE TABLE Establishments (
+CREATE TABLE Establishments
+(
     Id INT PRIMARY KEY NOT NULL IDENTITY(1,1),
     Name VARCHAR(30) NOT NULL,
     Type INT NOT NULL,
@@ -20,6 +22,7 @@ CREATE TABLE Establishments (
 
 CREATE TABLE Branches
 (
-	EstablishmentId INT REFERENCES Establishments (Id),
-	Address VARCHAR(30) NOT NULL
+    Id INT NOT NULL PRIMARY KEY IDENTITY(1,1),
+    EstablishmentId INT REFERENCES Establishments (Id),
+    Address VARCHAR(30) NOT NULL
 );

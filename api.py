@@ -7,7 +7,7 @@ import urllib.parse
 from auth import auth_bp
 
 # import db:
-from models import db
+from dal import db
 
 # configure database URI
 CONNETION_STRING = "Driver={ODBC Driver 13 for SQL Server};"\
