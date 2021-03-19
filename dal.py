@@ -1,11 +1,8 @@
 # Data Access Layer (Script)
 
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import Guest, Establishment, Branch
+from models import Guest, Establishment, Branch, db
 
-
-db = SQLAlchemy()
 
 # Guests related functions:
 
@@ -56,30 +53,28 @@ def get_guest_by_name(name):
 
 
 def get_guest_by_phone_number(phone_number):
-    sql_query = 'SELECT * FROM Guests WHERE PhoneNumber = \'{}\''.format(
-        phone_number)
-    result = db.engine.execute(sql_query).fetchone()
+    return Guest.query.filter_by(PhoneNumber=phone_number).first()
 
-    if result is not None:
-        guest = Guest(
-            result['Id'],
-            result['Name'],
-            result['PhoneNumber']
-        )
-        return guest
-    else:
-        return None
+    # sql_query = 'SELECT * FROM Guest WHERE PhoneNumber = \'{}\''.format(
+    #     phone_number)
+    # result = db.engine.execute(sql_query).fetchone()
+
+    # if result is not None:
+    #     guest = Guest(
+    #         result['PK_Guest'],
+    #         result['Name'],
+    #         result['PhoneNumber']
+    #     )
+    #     return guest
+    # else:
+    #     return None
 
 
 def add_guest(guest):
-    # the field 'id' doesn't matter when adding:
-    sql_query = 'INSERT INTO Guests (Name, PhoneNumber) VALUES (\'{}\', \'{}\')'.format(
-        guest.name, guest.phone_number)
-    db.engine.execute(sql_query)
+    db.session.add(guest)
     db.session.commit()
 
-
-# Establishments related functions:
+    # Establishments related functions:
 
 
 def get_establishments():

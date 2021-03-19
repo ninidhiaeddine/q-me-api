@@ -39,7 +39,6 @@ def register_guest():
     if error is None:
         # map json object to class object
         guest = Guest(
-            None,
             request.json['name'],
             request.json['phone_number']
         )
@@ -47,7 +46,7 @@ def register_guest():
         # verify input info
         is_valid_tuple = guest.is_valid()
         if is_valid_tuple[0]:
-            if dal.get_guest_by_phone_number(guest.phone_number) is not None:
+            if dal.get_guest_by_phone_number(guest.PhoneNumber) is not None:
                 error = 'Guest with Phone Number \'{}\' is already registered.'.format(
                     guest.phone_number)
         else:

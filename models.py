@@ -1,10 +1,20 @@
-# Database Models (Plain Old Objects)
+from database import db
+import datetime
 
-class Guest:
-    def __init__(self, id, name, phone_number):
-        self.id = id
-        self.name = name
-        self.phone_number = phone_number
+# Database Models:
+
+
+class Guest(db.Model):
+    # Column names:
+    PK_Guest = db.Column(db.Integer, primary_key=True)
+    Name = db.Column(db.String(20), nullable=False)
+    PhoneNumber = db.Column(db.String(20), nullable=False)
+    RegistrationDate = db.Column(
+        db.Date, nullable=False, default=datetime.datetime.utcnow)
+
+    def __init__(self, name, phone_number):
+        self.Name = name
+        self.PhoneNumber = phone_number
 
     def is_valid(self):
         """
@@ -13,16 +23,16 @@ class Guest:
         message = ""
 
         # verify fields:
-        if type(self.name) is not str:
+        if type(self.Name) is not str:
             message += "Name is invalid (must be a string) | "
-        elif len(self.name) > 30:
+        elif len(self.Name) > 30:
             message += "Name is too long (30 characters max). | "
 
-        if type(self.phone_number) is not str:
+        if type(self.PhoneNumber) is not str:
             message += "Phone Number is invalid (must be a string). | "
-        elif len(self.phone_number) > 20:
+        elif len(self.PhoneNumber) > 20:
             message += "Phone Number is too long (20 characters max). | "
-        elif self.phone_number[0] != '+':
+        elif self.PhoneNumber[0] != '+':
             message += "Phone Number is invalid (must start with the \'+\' character). | "
 
         # finalize returned tuple:
