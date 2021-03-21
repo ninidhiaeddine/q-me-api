@@ -1,10 +1,38 @@
-# Database Models (Plain Old Objects)
+import datetime
 
-class Guest:
-    def __init__(self, id, name, phone_number):
-        self.id = id
-        self.name = name
-        self.phone_number = phone_number
+# import database:
+from database import db
+
+# import
+from geoalchemy2 import Geometry
+
+
+# Database Models:
+
+
+class Guest(db.Model):
+    # Column names:
+    PK_Guest = db.Column(db.Integer, primary_key=True)
+    Name = db.Column(db.String(20), nullable=False)
+    PhoneNumber = db.Column(db.String(20), nullable=False)
+    RegistrationDate = db.Column(
+        db.Date, nullable=False, default=datetime.datetime.utcnow)
+
+    def __init__(self, name, phone_number):
+        self.Name = name
+        self.PhoneNumber = phone_number
+
+    def serialize(self):
+        return {
+            'PK_Guest': self.PK_Guest,
+            'Name': self.Name,
+            'PhoneNumber': self.PhoneNumber,
+            'RegistrationDate': self.RegistrationDate
+        }
+
+    def update(new_guest):
+        self.Name = new_guest.Name
+        self.PhoneNumber = new_guest.PhoneNumber
 
     def is_valid(self):
         """
@@ -13,16 +41,16 @@ class Guest:
         message = ""
 
         # verify fields:
-        if type(self.name) is not str:
+        if type(self.Name) is not str:
             message += "Name is invalid (must be a string) | "
-        elif len(self.name) > 30:
-            message += "Name is too long (30 characters max). | "
+        elif len(self.Name) > 20:
+            message += "Name is too long (20 characters max). | "
 
-        if type(self.phone_number) is not str:
+        if type(self.PhoneNumber) is not str:
             message += "Phone Number is invalid (must be a string). | "
-        elif len(self.phone_number) > 20:
+        elif len(self.PhoneNumber) > 20:
             message += "Phone Number is too long (20 characters max). | "
-        elif self.phone_number[0] != '+':
+        elif self.PhoneNumber[0] != '+':
             message += "Phone Number is invalid (must start with the \'+\' character). | "
 
         # finalize returned tuple:
@@ -38,13 +66,37 @@ class Guest:
         return (is_valid, message)
 
 
-class Establishment:
-    def __init__(self, id, name, type, email, password):
-        self.id = id
-        self.name = name
-        self.type = type
-        self.email = email
-        self.password = password
+class Establishment(db.Model):
+    PK_Establishment = db.Column(db.Integer, primary_key=True)
+    Name = db.Column(db.String(20), nullable=False)
+    Type = db.Column(db.Integer, nullable=False)
+    Email = db.Column(db.String(20), nullable=False)
+    Password = db.Column(db.String(20), nullable=False)
+    PhoneNumber = db.Column(db.String(20), nullable=True)
+
+    def __init__(self, name, type, email, password, phone_number=None):
+        self.Name = name
+        self.Type = type
+        self.Email = email
+        self.Password = password
+        self.PhoneNumber = phone_number
+
+    def serialize(self):
+        return {
+            'PK_Establishment': self.PK_Guest,
+            'Name': self.Name,
+            'Type': self.Type,
+            'Email': self.Email,
+            'Password': self.Password,
+            'PhoneNumber': self.PhoneNumber
+        }
+
+    def update(new_establishment):
+        self.Name = new_establishment.Name
+        self.Type = new_establishment.Type
+        self.Email = new_establishment.Email
+        self.Password = new_establishment.Password
+        self.PhoneNumber = new_establishment.PhoneNumber
 
     def is_valid(self):
         """
@@ -53,21 +105,28 @@ class Establishment:
         message = ""
 
         # verify fields:
-        if type(self.name) is not str:
+        if type(self.Name) is not str:
             message += "Name is invalid (must be a string). | "
-        elif len(self.name) > 30:
-            message += "Name is too long (30 characters max). | "
+        elif len(self.Name) > 20:
+            message += "Name is too long (20 characters max). | "
 
-        if type(self.type) is not int:
+        if type(self.Type) is not int:
             message += "Type is invalid (must be an int). | "
 
-        if type(self.email) is not str:
+        if type(self.Email) is not str:
             message += "Email is invalid (must be a string). | "
-        elif len(self.email) > 20:
+        elif len(self.Email) > 20:
             message += "Email is too long (20 characters max). | "
 
-        if type(self.password) is not str:
+        if type(self.Password) is not str:
             message += "Password is invalid (must be a string). | "
+
+        if (type(self.PhoneNumber) is not None) and (type(self.PhoneNumber) is not str):
+            message += "Phone Number is invalid (must be a string). | "
+        elif len(self.PhoneNumber) > 20:
+            message += "Phone Number is too long (20 characters max). | "
+        elif self.PhoneNumber[0] != '+':
+            message += "Phone Number is invalid (must start with the \'+\' character). | "
 
         # finalize returned tuple:
         if message == "":
@@ -82,11 +141,41 @@ class Establishment:
         return (is_valid, message)
 
 
-class Branch:
-    def __init__(self, id, establishment_id, address):
-        self.id = id
-        self.establishment_id = establishment_id
-        self.address = address
+class Branch(db.Model):
+    PK_Branch = db.Column(db.Integer, primary_key=True)
+    FK_Establishment = db.Column(db.Integer, nullable=False)
+    Address = db.Column(db.String(50), nullable=False)
+    Email = db.Column(db.String(20), nullable=False)
+    Password = db.Column(db.String(20), nullable=False)
+    PhoneNumber = db.Column(db.String(20), nullable=True)
+    GpsLocation = db.Column(Geometry('POINT'), nullable=True)
+
+    def __init__(self, establishment_id, address, email, password, phone_number=None, gps_location=None):
+        self.FK_Establishment = establishment_id
+        self.Address = address
+        self.Email = email
+        self.Password = password
+        self.PhoneNumber = phone_number
+        self.GpsLocation = gps_location
+
+    def serialize(self):
+        return {
+            'PK_Branch': self.PK_Branch,
+            'FK_Establishment': self.FK_Establishment,
+            'Address': self.Address,
+            'Email': self.Email,
+            'Password': self.Password,
+            'PhoneNumber': self.PhoneNumber,
+            'GpsLocation': self.GpsLocation
+        }
+
+    def update(new_branch):
+        self.FK_Establishment = new_branch.FK_Establishment
+        self.Address = new_branch.Address
+        self.Email = new_branch.Email
+        self.Password = new_branch.Password
+        self.PhoneNumber = new_branch.PhoneNumber
+        self.GpsLocation = new_branch.GpsLocation
 
     def is_valid(self):
         """
@@ -95,10 +184,27 @@ class Branch:
         message = ""
 
         # verify fields:
-        if type(self.address) is not str:
+        if type(self.Address) is not str:
             message += "Address is invalid (must be a string). | "
-        elif len(self.address) > 30:
-            message += "Address is too long (30 characters max). | "
+        elif len(self.Address) > 50:
+            message += "Address is too long (50 characters max). | "
+
+        if type(self.Email) is not str:
+            message += "Email is invalid (must be a string). | "
+        elif len(self.Email) > 20:
+            message += "Email is too long (20 characters max). | "
+
+        if type(self.Password) is not str:
+            message += "Password is invalid (must be a string). | "
+
+        if (type(self.PhoneNumber) is not None) and (type(self.PhoneNumber) is not str):
+            message += "Phone Number is invalid (must be a string). | "
+        elif len(self.PhoneNumber) > 20:
+            message += "Phone Number is too long (20 characters max). | "
+        elif self.PhoneNumber[0] != '+':
+            message += "Phone Number is invalid (must start with the \'+\' character). | "
+
+        # TODO: Validate GpsLocation
 
         # finalize returned tuple:
         if message == "":
@@ -111,3 +217,6 @@ class Branch:
 
         # return tuple
         return (is_valid, message)
+
+
+# TODO: Finish creating the models to match the database:

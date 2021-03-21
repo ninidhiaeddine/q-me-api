@@ -1,254 +1,268 @@
 # Data Access Layer (Script)
 
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import Guest, Establishment, Branch
 
+# import database:
+from database import db
 
-db = SQLAlchemy()
 
 # Guests related functions:
 
 
 def get_guests():
-    sql_query = 'SELECT * FROM Guests'
-    result = db.engine.execute(sql_query).fetchall()
-
-    guests = []
-    for row in result:
-        guest = Guest(
-            row['Id'],
-            row['Name'],
-            row['PhoneNumber']
-        )
-        guests.append(guest)
-    return guests
+    """
+    Returns the list of guests
+    """
+    return Guest.query.all()
 
 
 def get_guest_by_id(id):
-    sql_query = 'SELECT * FROM Guests WHERE Id = {}'.format(id)
-    result = db.engine.execute(sql_query).fetchone()
-
-    if result is not None:
-        guest = Guest(
-            result['Id'],
-            result['Name'],
-            result['PhoneNumber']
-        )
-        return guest
-    else:
-        return None
+    """
+    Returns the target guest if found. Returns None otherwise.
+    """
+    return Guest.query.filter_by(PK_Guest=id).first()
 
 
 def get_guest_by_name(name):
-    sql_query = 'SELECT * FROM Guests WHERE Name = \'{}\''.format(name)
-    result = db.engine.execute(sql_query).fetchone()
-
-    if result is not None:
-        guest = Guest(
-            result['Id'],
-            result['Name'],
-            result['PhoneNumber']
-        )
-        return guest
-    else:
-        return None
+    """
+    Returns the target guest
+    """
+    return Guest.query.filter_by(Name=name).first()
 
 
 def get_guest_by_phone_number(phone_number):
-    sql_query = 'SELECT * FROM Guests WHERE PhoneNumber = \'{}\''.format(
-        phone_number)
-    result = db.engine.execute(sql_query).fetchone()
-
-    if result is not None:
-        guest = Guest(
-            result['Id'],
-            result['Name'],
-            result['PhoneNumber']
-        )
-        return guest
-    else:
-        return None
+    """
+    Returns the target guest
+    """
+    return Guest.query.filter_by(PhoneNumber=phone_number).first()
 
 
 def add_guest(guest):
-    # the field 'id' doesn't matter when adding:
-    sql_query = 'INSERT INTO Guests (Name, PhoneNumber) VALUES (\'{}\', \'{}\')'.format(
-        guest.name, guest.phone_number)
-    db.engine.execute(sql_query)
+    """
+    Does not return anything
+    """
+    db.session.add(guest)
     db.session.commit()
+
+
+def update_guest_by_id(id, guest):
+    """
+    Returns True if update succeeds; returns False otherwise.
+    """
+    target_guest = Guest.query.filter_by(PK_Guest=id).first()
+    if target_guest is not None:
+        target_guest.update(guest)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+
+def delete_guests():
+    """
+    Does not return anything.
+    """
+    Guest.query.delete()
+    db.session.commit()
+
+
+def delete_guest_by_id(id):
+    """
+    Returns True if deletion succeeds; returns False otherwise.
+    """
+    target_guest = Guest.query.filter_by(PK_Guest=id).first()
+    if target_guest is not None:
+        db.session.delete(target_guest)
+        db.session.commit()
+        return True
+    else:
+        return False
 
 
 # Establishments related functions:
 
 
 def get_establishments():
-    sql_query = 'SELECT * FROM Establishments'
-    result = db.engine.execute(sql_query).fetchall()
-
-    establishments = []
-    for row in result:
-        establishment = Establishment(
-            row['Id'],
-            row['Name'],
-            row['Type'],
-            row['Email'],
-            row['Password']
-        )
-        establishments.append(establishment)
-    return establishments
+    """
+    Returns the list of establishments
+    """
+    return Establishment.query.all()
 
 
 def get_establishment_by_id(id):
-    sql_query = 'SELECT * FROM Establishments WHERE Id = {}'.format(id)
-    result = db.engine.execute(sql_query).fetchone()
-
-    if result is not None:
-        establishment = Establishment(
-            result['Id'],
-            result['Name'],
-            result['Type'],
-            result['Email'],
-            result['Password']
-        )
-        return establishment
-    else:
-        return None
+    """
+    Returns the target establishment if found. Returns None otherwise.
+    """
+    return Establishment.query.filter_by(PK_Establishment=id).first()
 
 
 def get_establishment_by_name(name):
-    sql_query = 'SELECT * FROM Establishments WHERE Name = \'{}\''.format(name)
-    result = db.engine.execute(sql_query).fetchone()
-
-    if result is not None:
-        establishment = Establishment(
-            result['Id'],
-            result['Name'],
-            result['Type'],
-            result['Email'],
-            result['Password']
-        )
-        return establishment
-    else:
-        return None
+    """
+    Returns the target establishment
+    """
+    return Establishment.query.filter_by(Name=name).first()
 
 
 def get_establishments_by_type(type):
-    sql_query = 'SELECT * FROM Establishments WHERE Type = {}'.format(type)
-    result = db.engine.execute(sql_query).fetchall()
-
-    establishments = []
-    for row in result:
-        establishment = Establishment(
-            row['Id'],
-            row['Name'],
-            row['Type'],
-            row['Email'],
-            row['Password']
-        )
-        establishments.append(establishment)
-    return establishments
+    """
+    Returns a list of establishments which are of type 'type'
+    """
+    return Establishment.query.filter_by(Type=type).all()
 
 
 def get_establishment_by_email(email):
-    sql_query = 'SELECT * FROM Establishments WHERE Email = \'{}\''.format(
-        email)
-    result = db.engine.execute(sql_query).fetchone()
+    """
+    Returns the target establishment
+    """
+    return Establishment.query.filter_by(Email=email).first()
 
-    if result is not None:
-        establishment = Establishment(
-            result['Id'],
-            result['Name'],
-            result['Type'],
-            result['Email'],
-            result['Password']
-        )
-        return establishment
-    else:
-        return None
+
+def get_establishment_by_phone_number(phone_number):
+    """
+    Returns the target establishment
+    """
+    return Establishment.query.filter_by(PhoneNumber=phone_number).first()
 
 
 def add_establishment(establishment):
-    # the field 'id' doesn't matter when adding:
-    sql_query = 'INSERT INTO Establishments (Name, Type, Email, Password) VALUES (\'{}\', {}, \'{}\', \'{}\')'.format(
-        establishment.name,
-        establishment.type,
-        establishment.email,
-        generate_password_hash(establishment.password)
-    )
-    db.engine.execute(sql_query)
+    """
+    Does not return anything
+    """
+    db.session.add(establishment)
     db.session.commit()
+
+
+def update_establishment_by_id(id, establishment):
+    """
+    Returns True if update succeeds; returns False otherwise.
+    """
+    target_establishment = Establishment.query.filter_by(
+        PK_Establishment=id).first()
+    if target_establishment is not None:
+        target_establishment.update(establishment)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+
+def delete_establishments():
+    """
+    Does not return anything.
+    """
+    Establishment.query.delete()
+    db.session.commit()
+
+
+def delete_establishment_by_id(id):
+    """
+    Returns True if deletion succeeds; returns False otherwise.
+    """
+    target_establishment = Establishment.query.filter_by(
+        PK_Establishment=id).first()
+    if target_establishment is not None:
+        db.session.delete(target_establishment)
+        db.session.commit()
+        return True
+    else:
+        return False
 
 
 # Branches related functions:
 
 
-def get_branches():
-    sql_query = 'SELECT * FROM Branches'
-    result = db.engine.execute(sql_query).fetchall()
-
-    branches = []
-    for row in result:
-        branch = Branch(
-            row['Id'],
-            row['EstablishmentId'],
-            row['Address']
-        )
-        branches.append(branch)
-    return branches
+def get_branches(establishment_id):
+    """
+    Returns the list of branches
+    """
+    return Branch.query.filter_by(FK_Establishment=establishment_id).all()
 
 
-def get_branch_by_id(id):
-    sql_query = 'SELECT * FROM Branches WHERE Id = {}'.format(id)
-    result = db.engine.execute(sql_query).fetchone()
-
-    if result is not None:
-        branch = Branch(
-            row['Id'],
-            row['EstablishmentId'],
-            row['Address']
-        )
-        return branch
-    else:
-        return None
+def get_branch_by_id(establishment_id, branch_id):
+    """
+    Returns the target branch if found. Returns None otherwise.
+    """
+    return Branch.query.filter_by(FK_Establishment=establishment_id, PK_Branch=branch_id).first()
 
 
-def get_branches_by_establishment_id(establishment_id):
-    sql_query = 'SELECT * FROM Branches WHERE EstablishmentId = {}'.format(
-        establishment_id)
-    result = db.engine.execute(sql_query).fetchall()
-
-    branches = []
-    for row in result:
-        branch = Branch(
-            row['Id'],
-            row['EstablishmentId'],
-            row['Address']
-        )
-        branches.append(branch)
-    return branches
+def get_branch_by_name(name):
+    """
+    Returns the target branch
+    """
+    return Branch.query.filter_by(Name=name).first()
 
 
 def get_branch_by_address(address):
-    sql_query = 'SELECT * FROM Branches WHERE Address = \'{}\''.format(address)
-    result = db.engine.execute(sql_query).fetchone()
+    """
+    Returns a list of branches which are of type 'type'
+    """
+    return Branch.query.filter_by(address=address).first()
 
-    if result is not None:
-        branch = Branch(
-            row['Id'],
-            row['EstablishmentId'],
-            row['Address']
-        )
-        return branch
-    else:
-        return None
+
+def get_branch_by_email(email):
+    """
+    Returns the target branch
+    """
+    return Branch.query.filter_by(Email=email).first()
+
+
+def get_branch_by_phone_number(phone_number):
+    """
+    Returns the target branch
+    """
+    return Branch.query.filter_by(PhoneNumber=phone_number).first()
+
+
+def get_branch_by_gps_location(gps_location):
+    """
+    Returns the target branch
+    """
+    return Branch.query.filter_by(GpsLocation=gps_location).first()
 
 
 def add_branch(branch):
-    # the field 'id' doesn't matter when adding:
-    sql_query = 'INSERT INTO Branches (EstablishmentId, Address) VALUES ({}, \'{}\')'.format(
-        branch.establishment_id,
-        branch.address
-    )
-    db.engine.execute(sql_query)
+    """
+    Does not return anything
+    """
+    db.session.add(branch)
     db.session.commit()
+
+
+def update_branch_by_id(id, branch):
+    """
+    Returns True if update succeeds; returns False otherwise.
+    """
+    target_branch = Branch.query.filter_by(
+        PK_Branch=id).first()
+    if target_branch is not None:
+        target_branch.update(branch)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+
+def delete_branches():
+    """
+    Does not return anything.
+    """
+    Branch.query.delete()
+    db.session.commit()
+
+
+def delete_branch_by_id(id):
+    """
+    Returns True if deletion succeeds; returns False otherwise.
+    """
+    target_branch = Branch.query.filter_by(
+        PK_Branch=id).first()
+    if target_branch is not None:
+        db.session.delete(target_branch)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+
+# TODO: Finish designin remaining DAL functions:
