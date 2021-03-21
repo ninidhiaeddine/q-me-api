@@ -3,9 +3,6 @@ import datetime
 # import database:
 from database import db
 
-# import
-from geoalchemy2 import Geometry
-
 
 # Database Models:
 
@@ -83,7 +80,7 @@ class Establishment(db.Model):
 
     def serialize(self):
         return {
-            'PK_Establishment': self.PK_Guest,
+            'PK_Establishment': self.PK_Establishment,
             'Name': self.Name,
             'Type': self.Type,
             'Email': self.Email,
@@ -121,12 +118,13 @@ class Establishment(db.Model):
         if type(self.Password) is not str:
             message += "Password is invalid (must be a string). | "
 
-        if (type(self.PhoneNumber) is not None) and (type(self.PhoneNumber) is not str):
-            message += "Phone Number is invalid (must be a string). | "
-        elif len(self.PhoneNumber) > 20:
-            message += "Phone Number is too long (20 characters max). | "
-        elif self.PhoneNumber[0] != '+':
-            message += "Phone Number is invalid (must start with the \'+\' character). | "
+        if self.PhoneNumber is not None:
+            if type(self.PhoneNumber) is not str:
+                message += "Phone Number is invalid (must be a string). | "
+            elif len(self.PhoneNumber) > 20:
+                message += "Phone Number is too long (20 characters max). | "
+            elif self.PhoneNumber[0] != '+':
+                message += "Phone Number is invalid (must start with the \'+\' character). | "
 
         # finalize returned tuple:
         if message == "":
@@ -148,15 +146,17 @@ class Branch(db.Model):
     Email = db.Column(db.String(20), nullable=False)
     Password = db.Column(db.String(20), nullable=False)
     PhoneNumber = db.Column(db.String(20), nullable=True)
-    GpsLocation = db.Column(Geometry('POINT'), nullable=True)
+    Latitude = db.Column(db.Float, nullable=True)
+    Longitude = db.Column(db.Float, nullable=True)
 
-    def __init__(self, establishment_id, address, email, password, phone_number=None, gps_location=None):
+    def __init__(self, establishment_id, address, email, password, phone_number=None, latitude=None, longitude=None):
         self.FK_Establishment = establishment_id
         self.Address = address
         self.Email = email
         self.Password = password
         self.PhoneNumber = phone_number
-        self.GpsLocation = gps_location
+        self.Latitude = latitude
+        self.Longitude = longitude
 
     def serialize(self):
         return {
@@ -166,7 +166,8 @@ class Branch(db.Model):
             'Email': self.Email,
             'Password': self.Password,
             'PhoneNumber': self.PhoneNumber,
-            'GpsLocation': self.GpsLocation
+            'Latitude': self.Latitude,
+            'Longitude': self.Longitude
         }
 
     def update(new_branch):
@@ -175,7 +176,8 @@ class Branch(db.Model):
         self.Email = new_branch.Email
         self.Password = new_branch.Password
         self.PhoneNumber = new_branch.PhoneNumber
-        self.GpsLocation = new_branch.GpsLocation
+        self.Latitude = new_branch.Latitude
+        self.Longitude = new_branch.Longitude
 
     def is_valid(self):
         """
@@ -197,12 +199,13 @@ class Branch(db.Model):
         if type(self.Password) is not str:
             message += "Password is invalid (must be a string). | "
 
-        if (type(self.PhoneNumber) is not None) and (type(self.PhoneNumber) is not str):
-            message += "Phone Number is invalid (must be a string). | "
-        elif len(self.PhoneNumber) > 20:
-            message += "Phone Number is too long (20 characters max). | "
-        elif self.PhoneNumber[0] != '+':
-            message += "Phone Number is invalid (must start with the \'+\' character). | "
+        if self.PhoneNumber is not None:
+            if type(self.PhoneNumber) is not str:
+                message += "Phone Number is invalid (must be a string). | "
+            elif len(self.PhoneNumber) > 20:
+                message += "Phone Number is too long (20 characters max). | "
+            elif self.PhoneNumber[0] != '+':
+                message += "Phone Number is invalid (must start with the \'+\' character). | "
 
         # TODO: Validate GpsLocation
 

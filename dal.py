@@ -186,39 +186,39 @@ def get_branch_by_id(establishment_id, branch_id):
     return Branch.query.filter_by(FK_Establishment=establishment_id, PK_Branch=branch_id).first()
 
 
-def get_branch_by_name(name):
+def get_branch_by_name(establishment_id, name):
     """
     Returns the target branch
     """
-    return Branch.query.filter_by(Name=name).first()
+    return Branch.query.filter_by(FK_Establishment=establishment_id, Name=name).first()
 
 
-def get_branch_by_address(address):
+def get_branch_by_address(establishment_id, address):
     """
     Returns a list of branches which are of type 'type'
     """
-    return Branch.query.filter_by(address=address).first()
+    return Branch.query.filter_by(FK_Establishment=establishment_id, address=address).first()
 
 
-def get_branch_by_email(email):
+def get_branch_by_email(establishment_id, email):
     """
     Returns the target branch
     """
-    return Branch.query.filter_by(Email=email).first()
+    return Branch.query.filter_by(FK_Establishment=establishment_id, Email=email).first()
 
 
-def get_branch_by_phone_number(phone_number):
+def get_branch_by_phone_number(establishemnt_id, phone_number):
     """
     Returns the target branch
     """
-    return Branch.query.filter_by(PhoneNumber=phone_number).first()
+    return Branch.query.filter_by(FK_Establishment=establishment_id, PhoneNumber=phone_number).first()
 
 
-def get_branch_by_gps_location(gps_location):
+def get_branch_by_gps_location(establishment_id, latitude, longitude):
     """
     Returns the target branch
     """
-    return Branch.query.filter_by(GpsLocation=gps_location).first()
+    return Branch.query.filter_by(FK_Establishment=establishment_id, Latitude=latitude, Longitude=longitude).first()
 
 
 def add_branch(branch):
@@ -229,12 +229,13 @@ def add_branch(branch):
     db.session.commit()
 
 
-def update_branch_by_id(id, branch):
+def update_branch_by_id(establishment_id, branch_id, branch):
     """
     Returns True if update succeeds; returns False otherwise.
     """
     target_branch = Branch.query.filter_by(
-        PK_Branch=id).first()
+        PK_Branch=branch_id, FK_Establishment=establishment_id).first()
+
     if target_branch is not None:
         target_branch.update(branch)
         db.session.commit()
@@ -243,20 +244,28 @@ def update_branch_by_id(id, branch):
         return False
 
 
-def delete_branches():
+def delete_branches(establishment_id):
     """
-    Does not return anything.
+    Returns True if deletion succeeds; returns False otherwise.
     """
-    Branch.query.delete()
-    db.session.commit()
+    target_branches = Branch.query.filter_by(
+        FK_Establishment=establishment_id).all()
+
+    if target_branches is not None:
+        db.session.delete(target_branches)
+        db.session.commit()
+        return True
+    else:
+        return False
 
 
-def delete_branch_by_id(id):
+def delete_branch_by_id(establishment_id, branch_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
     target_branch = Branch.query.filter_by(
-        PK_Branch=id).first()
+        PK_Branch=branch_id, FK_Establishment=establishment_id).first()
+
     if target_branch is not None:
         db.session.delete(target_branch)
         db.session.commit()
@@ -265,4 +274,4 @@ def delete_branch_by_id(id):
         return False
 
 
-# TODO: Finish designin remaining DAL functions:
+# TODO: Finish designing remaining DAL functions:

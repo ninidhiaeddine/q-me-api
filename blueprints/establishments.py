@@ -6,6 +6,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import Establishment
 import dal  # import data access layer
+import helpers
 
 establishments_bp = Blueprint(
     'establishments_bp', __name__, url_prefix='/establishments')
@@ -72,8 +73,8 @@ def add_establishment():
         "name" : "your establishment's name here",
         "type" : 0,
         "email" : "your email here",
-        "password" : "your password here"
-        "phone_number" : "your phone number here" (optional)
+        "password" : "your password here",
+        "phone_number" : "your phone number here" /* (optional) */
     }
 
     Returns the following JSON Object if operation is successful:
@@ -87,41 +88,25 @@ def add_establishment():
     error = None
 
     # verify expected JSON:
-    if (
-        'name' not in request.json or
-        'type' not in request.json or
-        'email' not in request.json or
-        'password' not in request.json
-    ):
+    if not helpers.request_is_valid(request, keys_list=['name', 'type', 'email', 'password']):
         error = "Invalid JSON Object."
 
     if error is None:
         # map json object to class object
-        if 'phone_number' in request.json:
-            establishment = Establishment(
-                request.json['name'],
-                request.json['type'],
-                request.json['email'],
-                request.json['password'],
-                request.json['phone_number']
-            )
-        else:
-            establishment = Establishment(
-                request.json['name'],
-                request.json['type'],
-                request.json['email'],
-                request.json['password']
-            )
-
-        # initially, assume that there is no error
-        error = None
+        establishment = Establishment(
+            request.json.get('name'),
+            request.json.get('type'),
+            request.json.get('email'),
+            request.json.get('password'),
+            request.json.get('phone_number')
+        )
 
         # verify input info
         is_valid_tuple = establishment.is_valid()
         if is_valid_tuple[0]:
             if dal.get_establishment_by_name(establishment.Name) is not None:
                 error = 'Establishment \'{}\' is already registered.'.format(
-                    establishment.name)
+                    establishment.Name)
         else:
             error = is_valid_tuple[1]
 
@@ -149,8 +134,8 @@ def update_establishment_by_id(id):
         "name" : "your establishment's name here",
         "type" : 0,
         "email" : "your email here",
-        "password" : "your password here"
-        "phone_number" : "your phone number here" (optional)
+        "password" : "your password here",
+        "phone_number" : "your phone number here" /* (optional) */
     }
 
     Returns the following JSON Object if operation is successful:
@@ -164,31 +149,18 @@ def update_establishment_by_id(id):
     error = None
 
     # verify expected JSON:
-    if (
-        'name' not in request.json or
-        'type' not in request.json or
-        'email' not in request.json or
-        'password' not in request.json
-    ):
+    if not helpers.request_is_valid(request, keys_list=['name', 'type', 'email', 'password']):
         error = "Invalid JSON Object."
 
     if error is None:
         # map json object to class object
-        if 'phone_number' in request.json:
-            establishment = Establishment(
-                request.json['name'],
-                request.json['type'],
-                request.json['email'],
-                request.json['password'],
-                request.json['phone_number']
-            )
-        else:
-            establishment = Establishment(
-                request.json['name'],
-                request.json['type'],
-                request.json['email'],
-                request.json['password']
-            )
+        establishment = Establishment(
+            request.json.get('name'),
+            request.json.get('type'),
+            request.json.get('email'),
+            request.json.get('password'),
+            request.json.get('phone_number')
+        )
 
         # initially, assume that there is no error
         error = None

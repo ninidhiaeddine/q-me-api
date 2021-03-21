@@ -6,6 +6,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import Branch
 import dal  # import data access layer
+import helpers
 
 branches_bp = Blueprint('branches', __name__, url_prefix='/establishments')
 
@@ -13,7 +14,7 @@ branches_bp = Blueprint('branches', __name__, url_prefix='/establishments')
 # GET:
 
 @branches_bp.route('/<int:establishment_id>/branches', methods=['GET'])
-def get_branches():
+def get_branches(establishment_id):
     """
     Does not expect any JSON object.
 
@@ -70,8 +71,9 @@ def add_branch(establishment_id):
         "address" : "your address here",
         "email" : "your email here",
         "password" : "your password here",
-        "phone_number" : "your phone number here" (optional),
-        "gps_location" : "Gps location here" (optional)
+        "phone_number" : "your phone number here" /* (optional) */,
+        "latitude" : "your latitude here" /* (optional) */,
+        "longitude" : "your lonitude here" /* (optional) */
     }
 
     Returns the following JSON Object if operation is successful:
@@ -85,30 +87,28 @@ def add_branch(establishment_id):
     error = None
 
     # verify expected JSON:
-    if (
-        'address' not in request.json or
-        'email' not in request.json or
-        'password' not in request.json
-    ):
+    if not helpers.request_is_valid(request, keys_list=['address', 'email', 'password']):
         error = "Invalid JSON Object."
 
     if error is None:
         # map json object to class object
         branch = Branch(
             establishment_id,
-            request.json['address'],
-            request.json['email'],
-            request.json['password'],
-            request.json['phone_number'],
-            request.json['gps_location'],
+            request.json.get('address'),
+            request.json.get('email'),
+            request.json.get('password'),
+            request.json.get('phone_number'),
+            request.json.get('latitude'),
+            request.json.get('longitude')
         )
 
         # verify input info
         is_valid_tuple = branch.is_valid()
         if is_valid_tuple[0]:
-            if dal.get_establishment_by_id(branch.FK_Establishment) is not None:
+            # Verify Referential Integrity
+            if dal.get_establishment_by_id(establishment_id) is None:
                 error = 'Establishment with ID={} does not exist. Impossible to add this branch.'.format(
-                    branch.FK_Establishment)
+                    establishment_id)
         else:
             error = is_valid_tuple[1]
 
@@ -132,19 +132,19 @@ def add_branch(establishment_id):
 def update_branch_by_id(establishment_id, branch_id):
     # TODO: Fix FK_Establishment dependency
     """
-    Expects the following JSON Object:
     {
         "address" : "your address here",
         "email" : "your email here",
         "password" : "your password here",
-        "phone_number" : "your phone number here" (optional),
-        "gps_location" : "Gps location here" (optional)
+        "phone_number" : "your phone number here" /* (optional) */,
+        "latitude" : "your latitude here" /* (optional) */,
+        "longitude" : "your lonitude here" /* (optional) */
     }
 
     Returns the following JSON Object if operation is successful:
     {
         "status" : 200,
-        "message" : "Branch Added to Database successfully!"
+        "message" : "Branch Updated Successfully!"
     }
     """
 
@@ -152,22 +152,19 @@ def update_branch_by_id(establishment_id, branch_id):
     error = None
 
     # verify expected JSON:
-    if (
-        'address' not in request.json or
-        'email' not in request.json or
-        'password' not in request.json
-    ):
+    if not helpers.request_is_valid(request, keys_list=['address', 'email', 'password']):
         error = "Invalid JSON Object."
 
     if error is None:
         # map json object to class object
         branch = Branch(
             establishment_id,
-            request.json['address'],
-            request.json['email'],
-            request.json['password'],
-            request.json['phone_number'],
-            request.json['gps_location'],
+            request.json.get('address'),
+            request.json.get('email'),
+            request.json.get('password'),
+            request.json.get('phone_number'),
+            request.json.get('latitude'),
+            request.json.get('longitude')
         )
 
         # verify input info
@@ -177,7 +174,7 @@ def update_branch_by_id(establishment_id, branch_id):
 
     # update database if everything is ok
     if error is None:
-        found = dal.update_branch_by_id(branch_id, branch)
+        found = dal.update_branch_by_id(establishment_id, branch_id, branch)
         if found:
             return jsonify(
                 status=200,
@@ -209,10 +206,11 @@ def delete_branches(establishment_id):
         "message" : "All branches have been deleted successfully!"
     }
     """
-    dal.delete_branches()
+    dal.delete_branches(establishment_id)
     return jsonify(
         status=200,
-        message="All branches have been deleted successfully!"
+        message="All branches with EstablishmentId={} have been deleted successfully!".format(
+            establishment_id)
     )
 
 
@@ -225,19 +223,19 @@ def delete_branch_by_id(establishment_id, branch_id):
     Returns the following JSON Object if operation is successful:
     {
         "status" : 200, 
-        "message" : "All branches have been deleted successfully!"
+        "message" : "Branch with Id={} have been deleted successfully!"
     }
     """
-    found = dal.delete_branch_by_id(branch_id)
+    found = dal.delete_branch_by_id(establishment_id, branch_id)
     if found:
         return jsonify(
             status=200,
             message="Branch with ID={} has been deleted successfully!".format(
-                id)
+                branch_id)
         )
     else:
         return jsonify(
             status=404,
             message="Branch with ID={} not found. No changes occured!".format(
-                id)
+                branch_id)
         )

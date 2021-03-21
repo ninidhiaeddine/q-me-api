@@ -6,6 +6,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import Guest
 import dal  # import data access layer
+import helpers
 
 guests_bp = Blueprint('guests', __name__, url_prefix='/guests')
 
@@ -82,17 +83,14 @@ def add_guest():
     error = None
 
     # verify expected JSON:
-    if (
-        'name' not in request.json or
-        'phone_number' not in request.json
-    ):
+    if not helpers.request_is_valid(request, keys_list=['name', 'phone_number']):
         error = "Invalid JSON Object."
 
     if error is None:
         # map json object to class object
         guest = Guest(
-            request.json['name'],
-            request.json['phone_number']
+            request.json.get('name'),
+            request.json.get('phone_number')
         )
 
         # verify input info
@@ -140,17 +138,14 @@ def update_guest_by_id(id):
     error = None
 
     # verify expected JSON:
-    if (
-        'name' not in request.json or
-        'phone_number' not in request.json
-    ):
+    if not helpers.request_is_valid(request, keys_list=['name', 'phone_number']):
         error = "Invalid JSON Object."
 
     if error is None:
         # map json object to class object
         guest = Guest(
-            request.json['name'],
-            request.json['phone_number']
+            request.json.get('name'),
+            request.json.get('phone_number')
         )
 
         # verify input info
