@@ -222,4 +222,53 @@ class Branch(db.Model):
         return (is_valid, message)
 
 
-# TODO: Finish creating the models to match the database:
+# TODO: Test the Queues:
+class Queues(db.Model):
+    PK_Queue = db.Column(db.Integer, primary_key=True)
+    FK_Branch = db.Column(db.Integer, nullable=False)
+    Name = db.Column(db.String(20), nullable=False)
+    ApproximateTimeOfService = db.Column(db.Float, nullable=False)
+
+
+    def __init__(self, branch_id, Name, ApproximateTimeOfService):
+        self.FK_Branch = branch_id
+        self.Name = Name
+        self.ApproximateTimeOfService = ApproximateTimeOfService
+
+
+    def serialize(self):
+        return {
+            'PK_Queue': self.PK_Queue,
+            'FK_Branch': self.FK_Branch,
+            'Name': self.Name,
+            'ApproximateTimeOfService' : self.ApproximateTimeOfService
+        }
+
+
+    def update(new_queue):
+        self.FK_Branch = new_queue.FK_Branch
+        self.Name = new_queue.Name
+        self.ApproximateTimeOfService = new_queue.ApproximateTimeOfService
+
+    def is_valid(self):
+        """
+        Returns a Tuple(is_valid, message)
+        """
+        message = ""
+
+        # verify fields:
+        if type(self.FK_Branch) is not int:
+            message += "Branch id is invalid (must be an integer). | "
+        
+
+        # finalize returned tuple:
+        if message == "":
+            is_valid = True
+            message = "OK | Cannot verify \'Referential Integrity\' for Foreign Key \'BranchId\' => Must be verified using DAL."
+        else:
+            is_valid = False
+            # remove last 3 characters as they have an unnecessary bar in them
+            message = message[:-3]
+
+        # return tuple
+        return (is_valid, message)
