@@ -223,7 +223,9 @@ class Branch(db.Model):
 
 
 # TODO: Test the Queues:
-class Queues(db.Model):
+
+
+class Queue(db.Model):
     PK_Queue = db.Column(db.Integer, primary_key=True)
     FK_Branch = db.Column(db.Integer, nullable=False)
     Name = db.Column(db.String(20), nullable=False)

@@ -4,18 +4,18 @@ from flask import (
     Blueprint, flash, request, session, jsonify
 )
 from werkzeug.security import check_password_hash, generate_password_hash
-# from models import Queue
+from models import Queue
 import dal  # import data access layer
 import helpers
 
-queues_bp = Blueprint('queues', __name__, url_prefix='/branches')
+queues_bp = Blueprint('queues', __name__, url_prefix='/establishments')
 
 # TODO: Finish blueprint design:
 
 # GET:
 
 @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues', methods=['GET'])
-def get_queues(branch_id):
+def get_queues(establishment_id, branch_id):
     """
     Does not expect any JSON object.
 
@@ -34,12 +34,12 @@ def get_queues(branch_id):
     else:
         return jsonify(
             status=404,
-            message="List of queues for branch with the ID ={} is empty!".format(branch_id)
+            message="List of queues for branch with the ID = {} under Establishment ID = {} is empty!".format(branch_id,establishment_id)
         )
 
 
 @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>', methods=['GET'])
-def get_queue_by_id(branch_id, queue_id):
+def get_queue_by_id(establishment_id, branch_id, queue_id):
     """
     Does not expect any JSON object.
 
@@ -49,7 +49,7 @@ def get_queue_by_id(branch_id, queue_id):
         "message" : branch_with_id
     }
     """
-    queue_with_id = dal.get_branch_by_id(establishment_id, branch_id)
+    queue_with_id = dal.get_queue_by_id(establishment_id, branch_id)
     if queue_with_id is not None:
         return jsonify(
             status=200,
@@ -65,7 +65,7 @@ def get_queue_by_id(branch_id, queue_id):
 # POST:
 
 @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues', methods=['POST'])
-def add_queue(branch_id):
+def add_queue(establishment_id, branch_id):
     """
     Expects the following JSON Object:
     {
@@ -84,22 +84,22 @@ def add_queue(branch_id):
     error = None
 
     # verify expected JSON:
-    if not helpers.request_is_valid(request, keys_list=['name', 'approximatetimeofservice']):
-        error = "Invalid JSON Object."
+    #if not helpers.request_is_valid(request, keys_list=['name', 'approximate_time_of_service']):
+    #    error = "Invalid JSON Object."
 
     if error is None:
         # map json object to class object
-        queue = queue(
+        queue = Queue(
             branch_id,
             request.json.get('name'),
             request.json.get('approximate_time_of_service'),
         )
 
         # verify input info
-        is_valid_tuple = branch.is_valid()
+        is_valid_tuple = queue.is_valid()
         if is_valid_tuple[0]:
             # Verify Referential Integrity
-            if dal.get_establishment_by_id(establishment_id) is None:
+            if dal.get_branch_by_id(branch_id) is None:
                 error = 'Branch with ID={} does not exist. Impossible to add this queue.'.format(
                     branch_id)
         else:
