@@ -326,8 +326,7 @@ def delete_queues(branch_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_queues = Queue.query.filter_by(
-        FK_Branch=branch_id).all()
+    target_queues = Queue.query.filter_by(FK_Branch=branch_id).all()
 
     if target_queues is not None:
         db.session.delete(target_queues)
@@ -341,8 +340,7 @@ def delete_queue_by_id(branch_id, queue_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_queue = Queue.query.filter_by(
-        PK_Queue=queue_id, FK_Branch=branch_id).first()
+    target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
 
     if target_queue is not None:
         db.session.delete(target_queue)

@@ -119,116 +119,107 @@ def add_queue(establishment_id, branch_id):
         )
 
 
-# PUT:
+# #PUT:
 
-# @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>', methods=['PUT'])
-# def update_branch_by_id(establishment_id, branch_id):
-#     # TODO: Fix FK_Establishment dependency
-#     """
-#     {
-#         "address" : "your address here",
-#         "email" : "your email here",
-#         "password" : "your password here",
-#         "phone_number" : "your phone number here" /* (optional) */,
-#         "latitude" : "your latitude here" /* (optional) */,
-#         "longitude" : "your lonitude here" /* (optional) */
-#     }
+@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>', methods=['PUT'])
+def update_branch_by_id(establishment_id, branch_id, queue_id):
 
-#     Returns the following JSON Object if operation is successful:
-#     {
-#         "status" : 200,
-#         "message" : "Branch Updated Successfully!"
-#     }
-#     """
+    """
+    {
+        "name" : "the name of the queue (the service)",
+        "approximate_time_of_service" : "the approximate time of service"
+    }
 
-#     # initially, assume that there is no error
-#     error = None
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200,
+        "message" : "Branch Updated Successfully!"
+    }
+    """
 
-#     # verify expected JSON:
-#     if not helpers.request_is_valid(request, keys_list=['address', 'email', 'password']):
-#         error = "Invalid JSON Object."
+    # initially, assume that there is no error
+    error = None
 
-#     if error is None:
-#         # map json object to class object
-#         branch = Branch(
-#             establishment_id,
-#             request.json.get('address'),
-#             request.json.get('email'),
-#             request.json.get('password'),
-#             request.json.get('phone_number'),
-#             request.json.get('latitude'),
-#             request.json.get('longitude')
-#         )
+    # verify expected JSON:
+    if not helpers.request_is_valid(request, keys_list=["name", "approximate_time_of_service"]):
+        error = "Invalid JSON Object."
 
-#         # verify input info
-#         is_valid_tuple = branch.is_valid()
-#         if not is_valid_tuple[0]:
-#             error = is_valid_tuple[1]
+    if error is None:
+        # map json object to class object
+        queue = Queue(
+            branch_id,
+            request.json.get('name'),
+            request.json.get('approximate_time_of_service'),
+        )
 
-#     # update database if everything is ok
-#     if error is None:
-#         found = dal.update_branch_by_id(establishment_id, branch_id, branch)
-#         if found:
-#             return jsonify(
-#                 status=200,
-#                 message="Branch Updated Successfully!"
-#             )
-#         else:
-#             return jsonify(
-#                 status=404,
-#                 message="Branch with ID={} not found. No changes occured!".format(
-#                     id)
-#             )
-#     else:
-#         return jsonify(
-#             status=400,
-#             message=error
-#         )
+        # verify input info
+        is_valid_tuple = branch.is_valid()
+        if not is_valid_tuple[0]:
+            error = is_valid_tuple[1]
+
+    # update database if everything is ok
+    if error is None:
+        found = dal.update_queue_by_id(queue_id, queue)
+        if found:
+            return jsonify(
+                status=200,
+                message="Queue Updated Successfully!"
+            )
+        else:
+            return jsonify(
+                status=404,
+                message="Queue with ID={} not found. No changes occured!".format(
+                    id)
+            )
+    else:
+        return jsonify(
+            status=400,
+            message=error
+        )
 
 
 # # DELETE:
 
-# @queues_bp.route('/<int:establishment_id>/branches', methods=['DELETE'])
-# def delete_queues(establishment_id):
-#     """
-#     Does not expect any JSON object.
+@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/', methods=['DELETE'])
+def delete_queues(establishment_id, branch_id):
+    """
+    Does not expect any JSON object.
 
-#     Returns the following JSON Object if operation is successful:
-#     {
-#         "status" : 200, 
-#         "message" : "All queues have been deleted successfully!"
-#     }
-#     """
-#     dal.delete_queues(establishment_id)
-#     return jsonify(
-#         status=200,
-#         message="All queues with EstablishmentId={} have been deleted successfully!".format(
-#             establishment_id)
-#     )
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200, 
+        "message" : "All queues have been deleted successfully!"
+    }
+    """
+    dal.delete_queues(establishment_id)
+    return jsonify(
+        status=200,
+        message="All queues with EstablishmentId={} have been deleted successfully!".format(
+            establishment_id)
+    )
 
 
-# @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>', methods=['DELETE'])
-# def delete_branch_by_id(establishment_id, branch_id):
-#     # TODO: Fix FK_Establishment dependency
-#     """
-#     Does not expect any JSON object.
+@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>queues/<int:queue_id>', methods=['DELETE'])
+def delete_queue_by_id(establishment_id, branch_id, queue_id):
+    """
+    Does not expect any JSON object.
 
-#     Returns the following JSON Object if operation is successful:
-#     {
-#         "status" : 200, 
-#         "message" : "Branch with Id={} have been deleted successfully!"
-#     }
-#     """
-#     found = dal.delete_branch_by_id(establishment_id, branch_id)
-#     if found:
-#         return jsonify(
-#             status=200,
-#             message="Branch with ID={} has been deleted successfully!".format(
-#                 branch_id)
-#         )
-#     else:
-#         return jsonify(
-#             status=404,
-#             message="Branch with ID={} not found. No changes occured!".format(
-#                 branch_id)
-#         )
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200, 
+        "message" : "Queue with Id={} have been deleted successfully!"
+    }
+    """
+    found = dal.delete_queue_by_id(queue_id)
+    if found:
+        return jsonify(
+            status=200,
+            message="Queue with ID={} has been deleted successfully!".format(
+                queue_id)
+        )
+    else:
+        return jsonify(
+            status=404,
+            message="Queue with ID={} not found. No changes occured!".format(
+                queue_id)
+        )
