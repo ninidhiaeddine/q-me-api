@@ -99,7 +99,7 @@ def add_queue(establishment_id, branch_id):
         is_valid_tuple = queue.is_valid()
         if is_valid_tuple[0]:
             # Verify Referential Integrity
-            if dal.get_branch_by_id(branch_id) is None:
+            if dal.get_branch_by_id(establishment_id, branch_id) is None:
                 error = 'Branch with ID={} does not exist. Impossible to add this queue.'.format(
                     branch_id)
         else:
