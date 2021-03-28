@@ -10,7 +10,6 @@ import helpers
 
 queues_bp = Blueprint('queues', __name__, url_prefix='/establishments')
 
-# TODO: Finish blueprint design:
 
 # GET:
 
@@ -49,7 +48,7 @@ def get_queue_by_id(establishment_id, branch_id, queue_id):
         "message" : branch_with_id
     }
     """
-    queue_with_id = dal.get_queue_by_id(establishment_id, branch_id)
+    queue_with_id = dal.get_queue_by_id(branch_id)
     if queue_with_id is not None:
         return jsonify(
             status=200,
@@ -58,7 +57,7 @@ def get_queue_by_id(establishment_id, branch_id, queue_id):
     else:
         return jsonify(
             status=404,
-            message="Queue with ID={} not found!".format(id)
+            message="Queue with ID={} not found!".format(queue_id)
         )
 
 
@@ -122,7 +121,7 @@ def add_queue(establishment_id, branch_id):
 # #PUT:
 
 @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>', methods=['PUT'])
-def update_branch_by_id(establishment_id, branch_id, queue_id):
+def update_queue_by_id(establishment_id, branch_id, queue_id):
 
     """
     {
@@ -180,7 +179,7 @@ def update_branch_by_id(establishment_id, branch_id, queue_id):
 
 # # DELETE:
 
-@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/', methods=['DELETE'])
+@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues', methods=['DELETE'])
 def delete_queues(establishment_id, branch_id):
     """
     Does not expect any JSON object.
@@ -191,11 +190,10 @@ def delete_queues(establishment_id, branch_id):
         "message" : "All queues have been deleted successfully!"
     }
     """
-    dal.delete_queues(establishment_id)
+    dal.delete_queues(branch_id)
     return jsonify(
         status=200,
-        message="All queues with EstablishmentId={} have been deleted successfully!".format(
-            establishment_id)
+        message="All queues with Branch id={} have been deleted successfully!".format(branch_id)
     )
 
 
