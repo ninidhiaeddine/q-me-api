@@ -336,7 +336,7 @@ def delete_queues(branch_id):
         return False
 
 
-def delete_queue_by_id(branch_id, queue_id):
+def delete_queue_by_id(queue_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """

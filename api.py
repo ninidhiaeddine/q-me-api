@@ -41,10 +41,10 @@ app.config['SECRET_KEY'] = "cM9s$AZTdeZs5Yt"
 app.register_blueprint(guests_bp)
 app.register_blueprint(establishments_bp)
 app.register_blueprint(branches_bp)
-
-# TODO: Implement the following blueprints:
 app.register_blueprint(queues_bp)
 app.register_blueprint(tokens_bp)
+
+# TODO: Implement the following blueprints:
 # app.register_blueprint(ratings_bp)
 # app.register_blueprint(feedback_bp)
 # app.register_blueprint(contact_messages_bp)

@@ -152,7 +152,7 @@ def update_queue_by_id(establishment_id, branch_id, queue_id):
         )
 
         # verify input info
-        is_valid_tuple = branch.is_valid()
+        is_valid_tuple = queue.is_valid()
         if not is_valid_tuple[0]:
             error = is_valid_tuple[1]
 
@@ -197,7 +197,7 @@ def delete_queues(establishment_id, branch_id):
     )
 
 
-@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>queues/<int:queue_id>', methods=['DELETE'])
+@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>', methods=['DELETE'])
 def delete_queue_by_id(establishment_id, branch_id, queue_id):
     """
     Does not expect any JSON object.

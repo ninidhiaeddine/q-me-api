@@ -222,9 +222,6 @@ class Branch(db.Model):
         return (is_valid, message)
 
 
-# TODO: Test the Queues:
-
-
 class Queue(db.Model):
     PK_Queue = db.Column(db.Integer, primary_key=True)
     FK_Branch = db.Column(db.Integer, nullable=False)
@@ -290,7 +287,7 @@ class Token(db.Model):
     -1 : done
     every other value returns an error  
     '''
-    def __init__(self, guest_id, queue_id, status, date_time, position):
+    def __init__(self, guest_id, queue_id, date_time, position, status=0):
         self.FK_Guest = guest_id
         self.FK_Queue = queue_id
         self.Status = status
