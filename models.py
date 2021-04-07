@@ -222,4 +222,118 @@ class Branch(db.Model):
         return (is_valid, message)
 
 
-# TODO: Finish creating the models to match the database:
+class Queue(db.Model):
+    PK_Queue = db.Column(db.Integer, primary_key=True)
+    FK_Branch = db.Column(db.Integer, nullable=False)
+    Name = db.Column(db.String(20), nullable=False)
+    ApproximateTimeOfService = db.Column(db.Float, nullable=False)
+
+
+    def __init__(self, branch_id, Name, ApproximateTimeOfService):
+        self.FK_Branch = branch_id
+        self.Name = Name
+        self.ApproximateTimeOfService = ApproximateTimeOfService
+
+
+    def serialize(self):
+        return {
+            'PK_Queue': self.PK_Queue,
+            'FK_Branch': self.FK_Branch,
+            'Name': self.Name,
+            'ApproximateTimeOfService' : self.ApproximateTimeOfService
+        }
+
+
+    def update(new_queue):
+        self.FK_Branch = new_queue.FK_Branch
+        self.Name = new_queue.Name
+        self.ApproximateTimeOfService = new_queue.ApproximateTimeOfService
+
+    def is_valid(self):
+        """
+        Returns a Tuple(is_valid, message)
+        """
+        message = ""
+
+        # verify fields:
+        if type(self.FK_Branch) is not int:
+            message += "Branch id is invalid (must be an integer). | "
+        
+
+        # finalize returned tuple:
+        if message == "":
+            is_valid = True
+            message = "OK | Cannot verify \'Referential Integrity\' for Foreign Key \'BranchId\' => Must be verified using DAL."
+        else:
+            is_valid = False
+            # remove last 3 characters as they have an unnecessary bar in them
+            message = message[:-3]
+
+        # return tuple
+        return (is_valid, message)
+
+
+class Token(db.Model):
+    PK_Token = db.Column(db.Integer, primary_key=True)
+    FK_Guest = db.Column(db.Integer, nullable=False)
+    FK_Queue = db.Column(db.Integer, nullable=False)
+    Status = db.Column(db.Integer, nullable=False)
+    DateAndTime = db.Column(db.DateTime,default=datetime.datetime.utcnow, nullable=False)
+    PositionInLine = db.Column(db.Integer, nullable=False)
+
+    '''Status:
+    0 : waiting (default)
+    1 : Being serviced
+    -1 : done
+    every other value returns an error  
+    '''
+    def __init__(self, guest_id, queue_id, date_time, position, status=0):
+        self.FK_Guest = guest_id
+        self.FK_Queue = queue_id
+        self.Status = status
+        self.DateAndTime = date_time
+        self.PositionInLine = position
+
+    def serialize(self):
+        return {
+        'PK_Token': self.PK_Token,
+        'FK_Guest' : self.FK_Guest,
+        'FK_Queue': self.FK_Queue,
+        'Status' : self.Status,
+        'DateAndTime': self.DateAndTime,
+        'PositionInLine': self.PositionInLine
+        }
+
+    def update(new_qu):
+        self.FK_Guest = new_qu.FK_Guest
+        self.FK_Queue = new_qu.FK_Queue
+        self.Status = new_qu.Status
+        self.DateAndTime = new_qu.DateAndTime
+        self.PositionInLine = new_qu.PositionInLine
+
+
+    def is_valid(self):
+        """
+        Returns a Tuple(is_valid, message)
+        """
+        message = ""
+
+        # verify fields:
+        if self.Status != 0 and self.Status != 1 and self.Status != -1 :
+            message += "Status Value is not valid, must be either 1 or -1 or 0. |"
+        
+        if self.PositionInLine < 0:
+            message += "Position in line is invalid. Must be a positive integer"
+
+
+        # finalize returned tuple:
+        if message == "":
+            is_valid = True
+            message = "OK"
+        else:
+            is_valid = False
+            # remove last 3 characters as they have an unnecessary bar in them
+            message = message[:-3]
+
+        # return tuple
+        return (is_valid, message)

@@ -239,3 +239,5 @@ def delete_branch_by_id(establishment_id, branch_id):
             message="Branch with ID={} not found. No changes occured!".format(
                 branch_id)
         )
+
+

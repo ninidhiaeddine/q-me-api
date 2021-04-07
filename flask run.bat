@@ -1,1 +1,1 @@
-set FLASK_APP=api && flask run
+set FLASK_APP=api.py && flask run

@@ -1,7 +1,7 @@
 # Data Access Layer (Script)
 
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import Guest, Establishment, Branch
+from models import Guest, Establishment, Branch, Queue, Token
 
 # import database:
 from database import db
@@ -275,3 +275,155 @@ def delete_branch_by_id(establishment_id, branch_id):
 
 
 # TODO: Finish designing remaining DAL functions:
+
+# Queues related functions:
+
+
+def get_queues(branch_id):
+    """
+    Returns the list of queues
+    """
+    return Queue.query.filter_by(FK_Branch=branch_id).all()
+
+
+def get_queue_by_id(queue_id):
+    """
+    Returns the target queue if found. Returns None otherwise.
+    """
+    return Queue.query.filter_by(PK_Queue=queue_id).all()
+
+
+def get_queue_by_name(branch_id, name):
+    """
+    Returns the target queue
+    """
+    return Queue.query.filter_by(FK_Branch=branch_id, Name=name).first()
+
+
+def add_queue(queue):
+    """
+    Does not return anything
+    """
+    db.session.add(queue)
+    db.session.commit()
+
+
+def update_queue_by_id(queue_id, queue):
+    """
+    Returns True if update succeeds; returns False otherwise.
+    """
+    target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
+
+    if target_queue is not None:
+        target_queue.update(queue)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+
+def delete_queues(branch_id):
+    """
+    Returns True if deletion succeeds; returns False otherwise.
+    """
+    target_queues = Queue.query.filter_by(FK_Branch=branch_id).all()
+
+    if target_queues is not None:
+        db.session.delete(target_queues)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+
+def delete_queue_by_id(queue_id):
+    """
+    Returns True if deletion succeeds; returns False otherwise.
+    """
+    target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
+
+    if target_queue is not None:
+        db.session.delete(target_queue)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+
+
+
+# Tokens related functions:
+
+
+def get_tokens(queue_id):
+    """
+    Returns the list of tokens
+    """
+    return Token.query.filter_by(FK_Queue=queue_id).all()
+
+def get_token_by_id(token_id):
+    """
+    Returns a token
+    """
+    return Token.query.filter_by(PK_Token=token_id).all()
+
+def add_token(token):
+    """
+    Does not return anything
+    """
+    db.session.add(token)
+    db.session.commit()
+
+def update_token_by_id(token_id, token):
+    """
+    Returns True if update succeeds; returns False otherwise.
+    """
+    target_token = Token.query.filter_by(PK_Token=token_id).first()
+
+    if target_token is not None:
+        target_token.update(token)
+        db.session.commit()
+        return True
+    else:
+        return False   
+
+
+def delete_tokens(queue_id):
+    """
+    Returns True if deletion succeeds; returns False otherwise.
+    """
+    target_tokens = Token.query.filter_by(FK_Queue=queue_id).all()
+
+    if target_tokens is not None:
+        db.session.delete(target_tokens)
+        db.session.commit()
+        return True
+    else:
+        return False   
+
+def delete_token_by_id(token_id):
+    """
+    Returns True if deletion succeeds; returns False otherwise.
+    """
+    target_token = Token.query.filter_by(PK_Token=token_id).all()
+
+    if target_token is not None:
+        db.session.delete(target_token)
+        db.session.commit()
+        return True
+    else:
+        return False
+
+
+
+
+#Tokens v2 related functions
+
+
+
+
+# def set_token_to_being_serviced(establishment_id, branch_id, queue_id):
+#     """
+#     Set token to 
+#     """
+#     return Queue.query.filter_by(FK_Queue=queue_id).all()
