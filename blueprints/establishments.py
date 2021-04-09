@@ -87,6 +87,7 @@ def add_establishment():
     # initially, assume that there is no error
     error = None
 
+    # verify expected JSON:
     if not helpers.request_is_valid(request, keys_list=['name', 'type', 'email', 'password']):
         error = "Invalid JSON Object."
 
@@ -96,8 +97,6 @@ def add_establishment():
             request.json.get('name'),
             request.json.get('type'),
             request.json.get('email'),
-            # TODO Fix DB Password Hashing Problem
-            # generate_password_hash(request.json.get('password'))
             request.json.get('password'),
             request.json.get('phone_number')
         )
@@ -105,9 +104,9 @@ def add_establishment():
         # verify input info
         is_valid_tuple = establishment.is_valid()
         if is_valid_tuple[0]:
-            if dal.get_establishment_by_email(establishment.Email) is not None:
-                error = 'Establishment with Email=\'{}\' is already registered.'.format(
-                    establishment.Email)
+            if dal.get_establishment_by_name(establishment.Name) is not None:
+                error = 'Establishment \'{}\' is already registered.'.format(
+                    establishment.Name)
         else:
             error = is_valid_tuple[1]
 
@@ -159,8 +158,6 @@ def update_establishment_by_id(id):
             request.json.get('name'),
             request.json.get('type'),
             request.json.get('email'),
-            # TODO Fix DB Password Hashing Problem
-            # generate_password_hash(request.json.get('password'))
             request.json.get('password'),
             request.json.get('phone_number')
         )
