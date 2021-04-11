@@ -336,7 +336,7 @@ def delete_queues(branch_id):
         return False
 
 
-def delete_queue_by_id(branch_id, queue_id):
+def delete_queue_by_id(queue_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
@@ -349,22 +349,6 @@ def delete_queue_by_id(branch_id, queue_id):
     else:
         return False
 
-
-def add_qr_to_queue(queue_id, QR_str):
-    '''
-        takes a string QR code and adds it to the database
-    '''
-    target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
-
-    db.session.add_qr(QR_str,queue_id)
-    db.session.commit()
-
-def get_QR_queue_by_id(queue_id):
-    '''
-        takes a queue id and return its QR code as a string
-    '''
-    target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
-    return target_queue.get_QR(target_queue)
 
 
 
