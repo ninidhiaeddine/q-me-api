@@ -60,6 +60,19 @@ def get_token_by_id(establishment_id, branch_id, queue_id, token_id):
             message="Token with ID={} not found!".format(id)
         )
 
+@tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens/<int:token_id>', methods=['GET'])
+def get_approximate_time_of_service(establishment_id,branch_id,queue_id,token_id):
+    """
+    Does not expect any JSON object.
+
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200, 
+        "message" : ats
+    }
+    """
+    tk = get_token_by_id(establishment_id,branch_id,queue_id,token_id).PositionInLine
+    return tk*get_queue_by_id(establishment_id,queue_id,token_id).ApproximateTimeOfService
 
 # POST:
 

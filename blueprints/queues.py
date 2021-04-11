@@ -221,3 +221,60 @@ def delete_queue_by_id(establishment_id, branch_id, queue_id):
             message="Queue with ID={} not found. No changes occured!".format(
                 queue_id)
         )
+
+@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>', methods=['POST'])
+def generate_QR_for_queue(establishment_id, branch_id,queue_id):
+    """
+
+    Does not expect any JSON object.
+
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200, 
+        "message" : "QR Code has been generated and added  successfully!"
+    }
+    """
+
+    found = dal.get_queue_by_id(queue_id)
+    if found:
+        QR_string = generate_QR_to_str(establishment_id, branch_id,queue_id)
+        add_qr_to_queue(queue_id,QR_string)
+
+        return jsonify(
+            status=200,
+            message="QR Code for Queue with ID={} has been generated successfully!".format(
+                queue_id)
+        )
+    else:
+        return jsonify(
+            status=404,
+            message="Queue with ID={} not found. No changes occured!".format(
+                queue_id)
+        )
+
+
+@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>', methods=['GET'])
+def get_QR_for_queue(establishment_id, branch_id,queue_id):
+    """
+
+    Does not expect any JSON object.
+
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200, 
+        "message" : qr_for_id
+    }
+    """
+    found = dal.get_queue_by_id(queue_id)
+    if found:
+        qr_for_id = get_QR_queue_by_id(queue_id)
+
+        return jsonify(
+            status=200,
+            message=qr_for_id
+        )
+    else:
+        return jsonify(
+            status=404,
+            message="Queue with ID={} not found.".format(queue_id)
+        )
