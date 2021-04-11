@@ -272,6 +272,12 @@ class Queue(db.Model):
         # return tuple
         return (is_valid, message)
 
+    def add_qr(QR_str,self):
+        self.QRcodeEncoded = QR_str
+
+    def get_QR(self):
+        return self.QRcodeEncoded
+
 
 class Token(db.Model):
     PK_Token = db.Column(db.Integer, primary_key=True)
