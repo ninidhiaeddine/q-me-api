@@ -290,12 +290,12 @@ def get_queue_by_id(queue_id):
     """
     Returns the target queue if found. Returns None otherwise.
     """
-    return Queue.query.filter_by(PK_Queue=queue_id).all()
+    return Queue.query.filter_by(PK_Queue=queue_id).first()
 
 
 def get_queue_by_name(branch_id, name):
     """
-    Returns the target queue
+    Returns the target queue if found. Returns None otherwise.
     """
     return Queue.query.filter_by(FK_Branch=branch_id, Name=name).first()
 
@@ -349,22 +349,26 @@ def delete_queue_by_id(queue_id):
     else:
         return False
 
-def add_qr_to_queue(queue_id, QR_str):
-    '''
+
+def add_qr_to_queue(queue_id, qr_str):
+    """
         takes a string QR code and adds it to the database
-    '''
+    """
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
 
-    db.session.add_qr(QR_str,queue_id)
+    # add qr code to the queue:
+    target_queue.add_qr(qr_str, queue_id)
+
+    # commit the changes:
     db.session.commit()
 
-def get_QR_queue_by_id(queue_id):
+
+def get_qr_by_queue_id(queue_id):
     '''
         takes a queue id and return its QR code as a string
     '''
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
-    return target_queue.get_QR(target_queue)
-
+    return target_queue.get_qr(target_queue)
 
 
 # Tokens related functions:
@@ -376,11 +380,13 @@ def get_tokens(queue_id):
     """
     return Token.query.filter_by(FK_Queue=queue_id).all()
 
+
 def get_token_by_id(token_id):
     """
     Returns a token
     """
-    return Token.query.filter_by(PK_Token=token_id).all()
+    return Token.query.filter_by(PK_Token=token_id).first()
+
 
 def add_token(token):
     """
@@ -388,6 +394,7 @@ def add_token(token):
     """
     db.session.add(token)
     db.session.commit()
+
 
 def update_token_by_id(token_id, token):
     """
@@ -400,7 +407,7 @@ def update_token_by_id(token_id, token):
         db.session.commit()
         return True
     else:
-        return False   
+        return False
 
 
 def delete_tokens(queue_id):
@@ -414,7 +421,8 @@ def delete_tokens(queue_id):
         db.session.commit()
         return True
     else:
-        return False   
+        return False
+
 
 def delete_token_by_id(token_id):
     """
@@ -430,15 +438,10 @@ def delete_token_by_id(token_id):
         return False
 
 
-
-
-#Tokens v2 related functions
-
-
-
-
-# def set_token_to_being_serviced(establishment_id, branch_id, queue_id):
-#     """
-#     Set token to 
-#     """
-#     return Queue.query.filter_by(FK_Queue=queue_id).all()
+def get_position_in_line(queue_id, guest_id):
+    """
+    Returns Positon in Line.
+    """
+    # Call on a database SQL function GetPositionInLine(queue_id, guest_id)
+    result = db.session.query(
+        func.dbo.GetPositionInLine(queue_id, guest_id)).first()

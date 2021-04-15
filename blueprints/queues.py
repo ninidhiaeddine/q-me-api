@@ -6,6 +6,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import Queue
 import dal  # import data access layer
+import qr   # import qr code generator
 import helpers
 
 queues_bp = Blueprint('queues', __name__, url_prefix='/establishments')
@@ -33,7 +34,8 @@ def get_queues(establishment_id, branch_id):
     else:
         return jsonify(
             status=404,
-            message="List of queues for branch with the ID = {} under Establishment ID = {} is empty!".format(branch_id,establishment_id)
+            message="List of queues for branch with the ID = {} under Establishment ID = {} is empty!".format(
+                branch_id, establishment_id)
         )
 
 
@@ -83,8 +85,8 @@ def add_queue(establishment_id, branch_id):
     error = None
 
     # verify expected JSON:
-    #if not helpers.request_is_valid(request, keys_list=['name', 'approximate_time_of_service']):
-    #    error = "Invalid JSON Object."
+    if not helpers.request_is_valid(request, keys_list=['name', 'approximate_time_of_service']):
+        error = "Invalid JSON Object."
 
     if error is None:
         # map json object to class object
@@ -122,7 +124,6 @@ def add_queue(establishment_id, branch_id):
 
 @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>', methods=['PUT'])
 def update_queue_by_id(establishment_id, branch_id, queue_id):
-
     """
     {
         "name" : "the name of the queue (the service)",
@@ -193,7 +194,8 @@ def delete_queues(establishment_id, branch_id):
     dal.delete_queues(branch_id)
     return jsonify(
         status=200,
-        message="All queues with Branch id={} have been deleted successfully!".format(branch_id)
+        message="All queues with Branch id={} have been deleted successfully!".format(
+            branch_id)
     )
 
 
@@ -222,10 +224,10 @@ def delete_queue_by_id(establishment_id, branch_id, queue_id):
                 queue_id)
         )
 
-@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>', methods=['POST'])
-def generate_QR_for_queue(establishment_id, branch_id,queue_id):
-    """
 
+@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/qr', methods=['POST'])
+def generate_qr_for_queue(establishment_id, branch_id, queue_id):
+    """
     Does not expect any JSON object.
 
     Returns the following JSON Object if operation is successful:
@@ -237,12 +239,19 @@ def generate_QR_for_queue(establishment_id, branch_id,queue_id):
 
     found = dal.get_queue_by_id(queue_id)
     if found:
-        QR_string = generate_QR_to_str(establishment_id, branch_id,queue_id)
-        add_qr_to_queue(queue_id,QR_string)
+        # generate QR Code:
+        qr_code = qr.generate_qr_for_queue(
+            establishment_id, branch_id, queue_id)
+
+        # convert QR code to string:
+        qr_str = qr.qr_to_str(qr_code)
+
+        # add qr code string to db:
+        dal.add_qr_to_queue(queue_id, qr_str)
 
         return jsonify(
             status=200,
-            message="QR Code for Queue with ID={} has been generated successfully!".format(
+            message="QR Code for Queue with ID={} has been generated and stored successfully!".format(
                 queue_id)
         )
     else:
@@ -252,29 +261,29 @@ def generate_QR_for_queue(establishment_id, branch_id,queue_id):
                 queue_id)
         )
 
+# Removed get_qr_for_queue() since we can retrun the Queue object which contains the QR code inside of it.
 
-@queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>', methods=['GET'])
-def get_QR_for_queue(establishment_id, branch_id,queue_id):
-    """
+# @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/qr', methods=['GET'])
+# def get_qr_for_queue(establishment_id, branch_id, queue_id):
+#     """
+#     Does not expect any JSON object.
 
-    Does not expect any JSON object.
+#     Returns the following JSON Object if operation is successful:
+#     {
+#         "status" : 200,
+#         "message" : qr_for_id
+#     }
+#     """
+#     found = dal.get_queue_by_id(queue_id)
+#     if found:
+#         qr_for_id = dal.get_qr_by_queue_id(queue_id)
 
-    Returns the following JSON Object if operation is successful:
-    {
-        "status" : 200, 
-        "message" : qr_for_id
-    }
-    """
-    found = dal.get_queue_by_id(queue_id)
-    if found:
-        qr_for_id = get_QR_queue_by_id(queue_id)
-
-        return jsonify(
-            status=200,
-            message=qr_for_id
-        )
-    else:
-        return jsonify(
-            status=404,
-            message="Queue with ID={} not found.".format(queue_id)
-        )
+#         return jsonify(
+#             status=200,
+#             message=qr_for_id
+#         )
+#     else:
+#         return jsonify(
+#             status=404,
+#             message="Queue with ID={} not found.".format(queue_id)
+#         )

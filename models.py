@@ -227,28 +227,27 @@ class Queue(db.Model):
     FK_Branch = db.Column(db.Integer, nullable=False)
     Name = db.Column(db.String(20), nullable=False)
     ApproximateTimeOfService = db.Column(db.Float, nullable=False)
-    QRcodeEncoded = db.Column(db.String(8000),nullable=True)
-
+    QrCode = db.Column(db.String(8000), nullable=True)
 
     def __init__(self, branch_id, Name, ApproximateTimeOfService):
         self.FK_Branch = branch_id
         self.Name = Name
         self.ApproximateTimeOfService = ApproximateTimeOfService
 
-
     def serialize(self):
         return {
             'PK_Queue': self.PK_Queue,
             'FK_Branch': self.FK_Branch,
             'Name': self.Name,
-            'ApproximateTimeOfService' : self.ApproximateTimeOfService
+            'ApproximateTimeOfService': self.ApproximateTimeOfService,
+            'QrCode': self.QrCode
         }
-
 
     def update(new_queue):
         self.FK_Branch = new_queue.FK_Branch
         self.Name = new_queue.Name
         self.ApproximateTimeOfService = new_queue.ApproximateTimeOfService
+        self.QrCode = new_queue.QrCode
 
     def is_valid(self):
         """
@@ -259,7 +258,6 @@ class Queue(db.Model):
         # verify fields:
         if type(self.FK_Branch) is not int:
             message += "Branch id is invalid (must be an integer). | "
-        
 
         # finalize returned tuple:
         if message == "":
@@ -273,20 +271,23 @@ class Queue(db.Model):
         # return tuple
         return (is_valid, message)
 
-    def add_qr(QR_str,self):
-        self.QRcodeEncoded = QR_str
+    def add_qr(self, qr_str):
+        self.QrCode = qr_str
 
-    def get_QR(self):
-        return self.QRcodeEncoded
+    def get_qr(self):
+        return self.QrCode
 
 
 class Token(db.Model):
     PK_Token = db.Column(db.Integer, primary_key=True)
     FK_Guest = db.Column(db.Integer, nullable=False)
     FK_Queue = db.Column(db.Integer, nullable=False)
-    Status = db.Column(db.Integer, nullable=False)
-    DateAndTime = db.Column(db.DateTime,default=datetime.datetime.utcnow, nullable=False)
-    PositionInLine = db.Column(db.Integer, nullable=False)
+    Status = db.Column(db.Integer, default=0, nullable=False)
+    DateAndTime = db.Column(
+        db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+    # 1. Deleted the field 'PositionInLine'
+    # 2. Created an SQL Function that takes care of
+    #    computing the PositionInLine
 
     '''Status:
     0 : waiting (default)
@@ -294,30 +295,25 @@ class Token(db.Model):
     -1 : done
     every other value returns an error  
     '''
-    def __init__(self, guest_id, queue_id, date_time, position, status=0):
+
+    def __init__(self, guest_id, queue_id):
         self.FK_Guest = guest_id
         self.FK_Queue = queue_id
-        self.Status = status
-        self.DateAndTime = date_time
-        self.PositionInLine = position
 
     def serialize(self):
         return {
-        'PK_Token': self.PK_Token,
-        'FK_Guest' : self.FK_Guest,
-        'FK_Queue': self.FK_Queue,
-        'Status' : self.Status,
-        'DateAndTime': self.DateAndTime,
-        'PositionInLine': self.PositionInLine
+            'PK_Token': self.PK_Token,
+            'FK_Guest': self.FK_Guest,
+            'FK_Queue': self.FK_Queue,
+            'Status': self.Status,
+            'DateAndTime': self.DateAndTime,
         }
 
-    def update(new_qu):
-        self.FK_Guest = new_qu.FK_Guest
-        self.FK_Queue = new_qu.FK_Queue
-        self.Status = new_qu.Status
-        self.DateAndTime = new_qu.DateAndTime
-        self.PositionInLine = new_qu.PositionInLine
-
+    def update(new_token):
+        self.FK_Guest = new_token.FK_Guest
+        self.FK_Queue = new_token.FK_Queue
+        self.Status = new_token.Status
+        self.DateAndTime = new_token.DateAndTime
 
     def is_valid(self):
         """
@@ -326,12 +322,8 @@ class Token(db.Model):
         message = ""
 
         # verify fields:
-        if self.Status != 0 and self.Status != 1 and self.Status != -1 :
+        if self.Status != 0 and self.Status != 1 and self.Status != -1:
             message += "Status Value is not valid, must be either 1 or -1 or 0. |"
-        
-        if self.PositionInLine < 0:
-            message += "Position in line is invalid. Must be a positive integer"
-
 
         # finalize returned tuple:
         if message == "":
