@@ -274,8 +274,6 @@ def delete_branch_by_id(establishment_id, branch_id):
         return False
 
 
-# TODO: Finish designing remaining DAL functions:
-
 # Queues related functions:
 
 
@@ -357,7 +355,7 @@ def add_qr_to_queue(queue_id, qr_str):
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
 
     # add qr code to the queue:
-    target_queue.add_qr(qr_str, queue_id)
+    target_queue.add_qr(qr_str)
 
     # commit the changes:
     db.session.commit()

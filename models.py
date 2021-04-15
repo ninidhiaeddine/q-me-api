@@ -227,7 +227,7 @@ class Queue(db.Model):
     FK_Branch = db.Column(db.Integer, nullable=False)
     Name = db.Column(db.String(20), nullable=False)
     ApproximateTimeOfService = db.Column(db.Float, nullable=False)
-    QrCode = db.Column(db.String(8000), nullable=True)
+    QrCode = db.Column(db.LargeBinary(8000), nullable=True)
 
     def __init__(self, branch_id, Name, ApproximateTimeOfService):
         self.FK_Branch = branch_id

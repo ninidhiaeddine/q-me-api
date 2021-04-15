@@ -50,7 +50,7 @@ def get_queue_by_id(establishment_id, branch_id, queue_id):
         "message" : branch_with_id
     }
     """
-    queue_with_id = dal.get_queue_by_id(branch_id)
+    queue_with_id = dal.get_queue_by_id(queue_id)
     if queue_with_id is not None:
         return jsonify(
             status=200,
@@ -178,7 +178,7 @@ def update_queue_by_id(establishment_id, branch_id, queue_id):
         )
 
 
-# # DELETE:
+# DELETE:
 
 @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues', methods=['DELETE'])
 def delete_queues(establishment_id, branch_id):

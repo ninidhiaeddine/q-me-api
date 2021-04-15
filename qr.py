@@ -1,17 +1,16 @@
 import png
 import qrcode
-import pyqrcode
-from models import Guest, Establishment, Branch, Token
-import cv2 as cv
 import base64
-import re
 from io import BytesIO
-from PIL import Image
 import io
+from models import Guest, Establishment, Branch, Token
 
+# TODO: Needs further discussion and polishing
 
 # generate QRCode for url to enqueue, user will be redirected to this url, click on "Queue me" and return img object
 # img.save() to save img locally, or send_file
+
+
 def generate_qr_for_queue(establishment_id, branch_id, queue_id):
     """
     Returns an image containing the QR Code
@@ -57,8 +56,7 @@ def base64_to_image(base64_str):
 
 
 def qr_to_str(qr_code_img):
-    qr_str = image_to_base64(qr_code_img)
-    return qr_str
+    return image_to_base64(qr_code_img)
 
 
 # take PIL Image object and save it to path
