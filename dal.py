@@ -1,7 +1,7 @@
 # Data Access Layer (Script)
 
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import Guest, Establishment, Branch, Queue, Token
+from models import Guest, Establishment, Branch, Queue, Token, CovidInfection
 
 # import database:
 from database import db
@@ -349,14 +349,16 @@ def delete_queue_by_id(queue_id):
     else:
         return False
 
+
 def add_qr_to_queue(queue_id, QR_str):
     '''
         takes a string QR code and adds it to the database
     '''
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
 
-    db.session.add_qr(QR_str,queue_id)
+    db.session.add_qr(QR_str, queue_id)
     db.session.commit()
+
 
 def get_QR_queue_by_id(queue_id):
     '''
@@ -364,7 +366,6 @@ def get_QR_queue_by_id(queue_id):
     '''
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
     return target_queue.get_QR(target_queue)
-
 
 
 # Tokens related functions:
@@ -376,11 +377,13 @@ def get_tokens(queue_id):
     """
     return Token.query.filter_by(FK_Queue=queue_id).all()
 
+
 def get_token_by_id(token_id):
     """
     Returns a token
     """
     return Token.query.filter_by(PK_Token=token_id).all()
+
 
 def add_token(token):
     """
@@ -388,6 +391,7 @@ def add_token(token):
     """
     db.session.add(token)
     db.session.commit()
+
 
 def update_token_by_id(token_id, token):
     """
@@ -400,7 +404,7 @@ def update_token_by_id(token_id, token):
         db.session.commit()
         return True
     else:
-        return False   
+        return False
 
 
 def delete_tokens(queue_id):
@@ -414,7 +418,8 @@ def delete_tokens(queue_id):
         db.session.commit()
         return True
     else:
-        return False   
+        return False
+
 
 def delete_token_by_id(token_id):
     """
@@ -430,15 +435,59 @@ def delete_token_by_id(token_id):
         return False
 
 
+def get_covid_infections():
+    """
+    Returns the list of covid_infections
+    """
+    return CovidInfection.query.all()
 
 
-#Tokens v2 related functions
-
-
-
-
-# def set_token_to_being_serviced(establishment_id, branch_id, queue_id):
+# def get_covid_infection_by_id(id):
 #     """
-#     Set token to 
+#     Returns the target covid_infection if found. Returns None otherwise.
 #     """
-#     return Queue.query.filter_by(FK_Queue=queue_id).all()
+#     return CovidInfection.query.filter_by(PK_CovidInfection=id).first()
+
+
+# def add_covid_infection(covid_infection):
+#     """
+#     Does not return anything
+#     """
+#     db.session.add(covid_infection)
+#     db.session.commit()
+
+
+# def update_covid_infection_by_id(id, covid_infection):
+#     """
+#     Returns True if update succeeds; returns False otherwise.
+#     """
+#     target_covid_infection = CovidInfection.query.filter_by(
+#         PK_CovidInfection=id).first()
+#     if target_covid_infection is not None:
+#         target_covid_infection.update(covid_infection)
+#         db.session.commit()
+#         return True
+#     else:
+#         return False
+
+
+# def delete_covid_infections():
+#     """
+#     Does not return anything.
+#     """
+#     CovidInfection.query.delete()
+#     db.session.commit()
+
+
+# def delete_covid_infection_by_id(id):
+#     """
+#     Returns True if deletion succeeds; returns False otherwise.
+#     """
+#     target_covid_infection = CovidInfection.query.filter_by(
+#         PK_CovidInfection=id).first()
+#     if target_covid_infection is not None:
+#         db.session.delete(target_covid_infection)
+#         db.session.commit()
+#         return True
+#     else:
+#         return False
