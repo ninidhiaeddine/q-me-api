@@ -225,6 +225,8 @@ def delete_queue_by_id(establishment_id, branch_id, queue_id):
         )
 
 
+# Special endpoint:
+
 @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/qr', methods=['POST'])
 def generate_qr_for_queue(establishment_id, branch_id, queue_id):
     """

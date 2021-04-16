@@ -438,8 +438,46 @@ def delete_token_by_id(token_id):
 
 def get_position_in_line(queue_id, guest_id):
     """
-    Returns Positon in Line.
+    Returns the Positon in Line of a given Guest
     """
     # Call on a database SQL function GetPositionInLine(queue_id, guest_id)
     result = db.session.query(
         func.dbo.GetPositionInLine(queue_id, guest_id)).first()
+
+
+def get_people_enqueuing_count(queue_id):
+    """
+    Returns the number of people enqueuing in a given Queue
+    """
+    # Call on a database SQL function GetPositionInLine(queue_id, guest_id)
+    result = db.session.query(
+        func.dbo.GetPeopleEnqueingCount(queue_id)).first()
+
+
+def serve_guest(queue_id):
+    """
+        Executes Db procedure to serve the 1st person in line in a given Queue.
+        Does not return anytihng.
+        """
+    db.session.query(
+        func.dbo.ServeGuest(queue_id)).first()
+
+
+def dequeue_guest(queue_id):
+    """
+    Executes Db procedure to dequeue the person being served a given Queue.
+    Does not return anytihng.
+    """
+    db.session.query(
+        func.dbo.DequeueGuest(queue_id)).first()
+
+
+def close_queue(queue_id):
+    """
+        Executes Db produce to close a given Queue.
+        Effect: All guests enqueuing in this Queue will be dequeued.
+
+        Does not return anytihng.
+        """
+    db.session.query(
+        func.dbo.CloseQueue(queue_id)).first()

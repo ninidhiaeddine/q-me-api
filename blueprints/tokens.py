@@ -61,107 +61,7 @@ def get_token_by_id(establishment_id, branch_id, queue_id, token_id):
         )
 
 
-# Special Endpoints (GET):
-
-@tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens/<int:token_id>/time_remaining', methods=['GET'])
-def get_time_remaining(establishment_id, branch_id, queue_id, token_id):
-    """
-    {
-        "guest_id" : (int)
-    }
-
-    Returns the following JSON Object if operation is successful:
-    {
-        "status" : 200, 
-        "message" : time_remaining
-    }
-    """
-    # initially, assume that there is no error
-    error = None
-
-    # verify expected JSON:
-    if not helpers.request_is_valid(request, keys_list=["guest_id"]):
-        error = "Invalid JSON Object."
-
-    if error is None:
-        # verify that guest and queue actually exist:
-        guest_with_id = dal.get_guest_by_id(request.json.get('guest_id'))
-        queue_with_id = dal.get_queue_by_id(queue_id)
-
-        if guest_with_id is not None and queue_with_id is not None:
-            # get PositionInLine & Approximate Time of Service:
-            pos_in_line = dal.get_position_in_line(queue_id, token_id)
-            approximate_time_of_service = dal.get_queue_by_id(
-                establishment_id, queue_id, token_id).ApproximateTimeOfService
-
-            # compute time remaining using the following formula:
-            time_remaining = (pos_in_line + 1) * approximate_time_of_service
-
-            return jsonify(
-                status=200,
-                message=time_remaining
-            )
-        else:
-            return jsonify(
-                status=404,
-                message="Guest with Id={} OR Queue with Id={} not found!".format(
-                    request.json.get('guest_id'), queue_id)
-            )
-    else:
-        return jsonify(
-            status=404,
-            message=error
-        )
-
-
-@tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens/<int:token_id>/position_in_line', methods=['GET'])
-def get_position_in_line(establishment_id, branch_id, queue_id, token_id):
-    """
-    Expects the following JSON Object:
-    {
-        "guest_id" : int
-    }
-
-    Returns the following JSON Object:
-    {
-        "status": 200,
-        "message": pos_in_line (int)
-    }
-    """
-
-    # initially, assume that there is no error
-    error = None
-
-    # verify expected JSON:
-    if not helpers.request_is_valid(request, keys_list=["guest_id"]):
-        error = "Invalid JSON Object."
-
-    if error is None:
-        # verify that guest and queue actually exist:
-        guest_with_id = dal.get_guest_by_id(request.json.get('guest_id'))
-        queue_with_id = dal.get_queue_by_id(queue_id)
-
-        if guest_with_id is not None and queue_with_id is not None:
-            pos_in_line = dal.get_position_in_line(
-                queue_id, request.json.get('guest_id'))
-            return jsonify(
-                status=200,
-                message=pos_in_line
-            )
-        else:
-            return jsonify(
-                status=404,
-                message="Guest with Id={} OR Queue with Id={} not found!".format(
-                    request.json.get('guest_id'), queue_id)
-            )
-    else:
-        return jsonify(
-            status=404,
-            message=error
-        )
-
 # POST:
-
 
 @tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens', methods=['POST'])
 def add_token(establishment_id, branch_id, queue_id):
@@ -334,3 +234,162 @@ def delete_token_by_id(establishment_id, branch_id, queue_id, token_id):
             message="Token with ID={} not found. No changes occured!".format(
                 token_id)
         )
+
+
+# Special Endpoints (GET):
+
+@tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens/<int:token_id>/time_remaining', methods=['GET'])
+def get_time_remaining(establishment_id, branch_id, queue_id, token_id):
+    """
+    {
+        "guest_id" : (int)
+    }
+
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200, 
+        "message" : time_remaining
+    }
+    """
+    # initially, assume that there is no error
+    error = None
+
+    # verify expected JSON:
+    if not helpers.request_is_valid(request, keys_list=["guest_id"]):
+        error = "Invalid JSON Object."
+
+    if error is None:
+        # verify that guest and queue actually exist:
+        guest_with_id = dal.get_guest_by_id(request.json.get('guest_id'))
+        queue_with_id = dal.get_queue_by_id(queue_id)
+
+        if guest_with_id is not None and queue_with_id is not None:
+            # get PositionInLine & Approximate Time of Service:
+            pos_in_line = dal.get_position_in_line(queue_id, token_id)
+            approximate_time_of_service = dal.get_queue_by_id(
+                establishment_id, queue_id, token_id).ApproximateTimeOfService
+
+            # compute time remaining using the following formula:
+            time_remaining = (pos_in_line + 1) * approximate_time_of_service
+
+            return jsonify(
+                status=200,
+                message=time_remaining
+            )
+        else:
+            return jsonify(
+                status=404,
+                message="Guest with Id={} OR Queue with Id={} not found!".format(
+                    request.json.get('guest_id'), queue_id)
+            )
+    else:
+        return jsonify(
+            status=404,
+            message=error
+        )
+
+
+@tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens/<int:token_id>/position_in_line', methods=['GET'])
+def get_position_in_line(establishment_id, branch_id, queue_id, token_id):
+    """
+    Expects the following JSON Object:
+    {
+        "guest_id" : int
+    }
+
+    Returns the following JSON Object:
+    {
+        "status": 200,
+        "message": pos_in_line (int)
+    }
+    """
+
+    # initially, assume that there is no error
+    error = None
+
+    # verify expected JSON:
+    if not helpers.request_is_valid(request, keys_list=["guest_id"]):
+        error = "Invalid JSON Object."
+
+    if error is None:
+        # verify that guest and queue actually exist:
+        guest_with_id = dal.get_guest_by_id(request.json.get('guest_id'))
+        queue_with_id = dal.get_queue_by_id(queue_id)
+
+        if guest_with_id is not None and queue_with_id is not None:
+            pos_in_line = dal.get_position_in_line(
+                queue_id, request.json.get('guest_id'))
+            return jsonify(
+                status=200,
+                message=pos_in_line
+            )
+        else:
+            return jsonify(
+                status=404,
+                message="Guest with Id={} OR Queue with Id={} not found!".format(
+                    request.json.get('guest_id'), queue_id)
+            )
+    else:
+        return jsonify(
+            status=404,
+            message=error
+        )
+
+# Other Special Endpoints:
+
+# I am aware that this is a messy endpoint name.
+# Did not find an alternative
+
+
+@tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens/<int:token_id>/serve', methods=['GET'])
+def serve_guest(establishment_id, branch_id, queue_id, token_id):
+    """
+    Does not expect any JSON Object.
+
+    Returns the following JSON Object:
+    {
+        "status": 200,
+        "message": "Guest Served!"
+    }
+    """
+    dal.serve_guest(queue_id)
+    return jsonify(
+        status=200,
+        message="Guest Served!"
+    )
+
+
+@tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens/<int:token_id>/dequeue', methods=['GET'])
+def dequeue_guest(establishment_id, branch_id, queue_id, token_id):
+    """
+    Does not expect any JSON Object.
+
+    Returns the following JSON Object:
+    {
+        "status": 200,
+        "message": "Guest Dequeued!"
+    }
+    """
+    dal.dequeue_guest(queue_id)
+    return jsonify(
+        status=200,
+        message="Guest Dequeued!"
+    )
+
+
+@tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens/<int:token_id>/close', methods=['GET'])
+def close_queue(establishment_id, branch_id, queue_id, token_id):
+    """
+    Does not expect any JSON Object.
+
+    Returns the following JSON Object:
+    {
+        "status": 200,
+        "message": "Queue Closed!"
+    }
+    """
+    dal.close_queue(queue_id)
+    return jsonify(
+        status=200,
+        message="Queue Colsed!"
+    )
