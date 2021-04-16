@@ -142,9 +142,9 @@ class Establishment(db.Model):
 class Branch(db.Model):
     PK_Branch = db.Column(db.Integer, primary_key=True)
     FK_Establishment = db.Column(db.Integer, nullable=False)
-    Address = db.Column(db.String(50), nullable=False)
-    Email = db.Column(db.String(20), nullable=False)
-    Password = db.Column(db.String(20), nullable=False)
+    Address = db.Column(db.String(200), nullable=False)
+    Email = db.Column(db.String(50), nullable=False)
+    Password = db.Column(db.String(50), nullable=False)
     PhoneNumber = db.Column(db.String(20), nullable=True)
     Latitude = db.Column(db.Float, nullable=True)
     Longitude = db.Column(db.Float, nullable=True)
@@ -193,8 +193,6 @@ class Branch(db.Model):
 
         if type(self.Email) is not str:
             message += "Email is invalid (must be a string). | "
-        elif len(self.Email) > 20:
-            message += "Email is too long (20 characters max). | "
 
         if type(self.Password) is not str:
             message += "Password is invalid (must be a string). | "
@@ -257,9 +255,15 @@ class Queue(db.Model):
 
         # verify fields:
         if type(self.FK_Branch) is not int:
-            message += "Branch id is invalid (must be an integer). | "
+            message += "Branch Id is invalid (must be an integer). | "
 
-        # finalize returned tuple:
+        if type(self.Name) is not str:
+            message += "Name is invalid (must be a string). | "
+
+        if type(self.ApproximateTimeOfService) is not float:
+            message += "Approximate Time of Service is invalid (must be a float). | "
+
+            # finalize returned tuple:
         if message == "":
             is_valid = True
             message = "OK | Cannot verify \'Referential Integrity\' for Foreign Key \'BranchId\' => Must be verified using DAL."
@@ -286,7 +290,7 @@ class Token(db.Model):
     DateAndTime = db.Column(
         db.DateTime, default=datetime.datetime.utcnow, nullable=False)
     # 1. Deleted the field 'PositionInLine'
-    # 2. Created an SQL Function that takes care of
+    # 2. Replaced it with an SQL Function that takes care of
     #    computing the PositionInLine
 
     '''Status:
@@ -299,6 +303,7 @@ class Token(db.Model):
     def __init__(self, guest_id, queue_id):
         self.FK_Guest = guest_id
         self.FK_Queue = queue_id
+        self.Status = 0
 
     def serialize(self):
         return {
@@ -322,6 +327,12 @@ class Token(db.Model):
         message = ""
 
         # verify fields:
+        if type(self.FK_Guest) is not int:
+            message += "Guest Id is not valid (must be an integer). |"
+
+        if type(self.FK_Queue) is not int:
+            message += "Queue Id is not valid (must be an integer). |"
+
         if self.Status != 0 and self.Status != 1 and self.Status != -1:
             message += "Status Value is not valid, must be either 1 or -1 or 0. |"
 

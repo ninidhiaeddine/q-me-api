@@ -6,6 +6,9 @@ from models import Guest, Establishment, Branch, Queue, Token
 # import database:
 from database import db
 
+# importing func for function calls
+from sqlalchemy import func
+
 
 # Guests related functions:
 
@@ -71,9 +74,9 @@ def delete_guest_by_id(id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_guest = Guest.query.filter_by(PK_Guest=id).first()
+    target_guest = Guest.query.filter_by(PK_Guest=id)
     if target_guest is not None:
-        db.session.delete(target_guest)
+        target_guest.delete()
         db.session.commit()
         return True
     else:
@@ -160,9 +163,9 @@ def delete_establishment_by_id(id):
     Returns True if deletion succeeds; returns False otherwise.
     """
     target_establishment = Establishment.query.filter_by(
-        PK_Establishment=id).first()
+        PK_Establishment=id)
     if target_establishment is not None:
-        db.session.delete(target_establishment)
+        target_establishment.delete()
         db.session.commit()
         return True
     else:
@@ -249,10 +252,10 @@ def delete_branches(establishment_id):
     Returns True if deletion succeeds; returns False otherwise.
     """
     target_branches = Branch.query.filter_by(
-        FK_Establishment=establishment_id).all()
+        FK_Establishment=establishment_id)
 
     if target_branches is not None:
-        db.session.delete(target_branches)
+        target_branches.delete()
         db.session.commit()
         return True
     else:
@@ -264,10 +267,10 @@ def delete_branch_by_id(establishment_id, branch_id):
     Returns True if deletion succeeds; returns False otherwise.
     """
     target_branch = Branch.query.filter_by(
-        PK_Branch=branch_id, FK_Establishment=establishment_id).first()
+        PK_Branch=branch_id, FK_Establishment=establishment_id)
 
     if target_branch is not None:
-        db.session.delete(target_branch)
+        target_branch.delete()
         db.session.commit()
         return True
     else:
@@ -324,10 +327,10 @@ def delete_queues(branch_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_queues = Queue.query.filter_by(FK_Branch=branch_id).all()
+    target_queues = Queue.query.filter_by(FK_Branch=branch_id)
 
     if target_queues is not None:
-        db.session.delete(target_queues)
+        target_queues.delete()
         db.session.commit()
         return True
     else:
@@ -338,10 +341,10 @@ def delete_queue_by_id(queue_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
+    target_queue = Queue.query.filter_by(PK_Queue=queue_id)
 
     if target_queue is not None:
-        db.session.delete(target_queue)
+        target_queue.delete()
         db.session.commit()
         return True
     else:
@@ -386,6 +389,13 @@ def get_token_by_id(token_id):
     return Token.query.filter_by(PK_Token=token_id).first()
 
 
+def get_token(queue_id, guest_id):
+    """
+    Returns a token with a given queue id and guest id
+    """
+    return Token.query.filter_by(FK_Queue=queue_id, FK_Guest=guest_id).first()
+
+
 def add_token(token):
     """
     Does not return anything
@@ -412,10 +422,10 @@ def delete_tokens(queue_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_tokens = Token.query.filter_by(FK_Queue=queue_id).all()
+    target_tokens = Token.query.filter_by(FK_Queue=queue_id)
 
     if target_tokens is not None:
-        db.session.delete(target_tokens)
+        target_tokens.delete()
         db.session.commit()
         return True
     else:
@@ -426,10 +436,10 @@ def delete_token_by_id(token_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_token = Token.query.filter_by(PK_Token=token_id).all()
+    target_token = Token.query.filter_by(PK_Token=token_id)
 
     if target_token is not None:
-        db.session.delete(target_token)
+        target_token.delete()
         db.session.commit()
         return True
     else:
@@ -438,46 +448,79 @@ def delete_token_by_id(token_id):
 
 def get_position_in_line(queue_id, guest_id):
     """
-    Returns the Positon in Line of a given Guest
+    Returns the Positon in Line of a given Guest if found.
+    Returns -1 otherwise.
     """
-    # Call on a database SQL function GetPositionInLine(queue_id, guest_id)
-    result = db.session.query(
-        func.dbo.GetPositionInLine(queue_id, guest_id)).first()
+    try:
+        # Call on a database SQL function GetPositionInLine(queue_id, guest_id)
+        result = db.session.query(
+            func.dbo.GetPositionInLine(queue_id, guest_id)).first()
+        return result[0]
+    except:
+        return -1
 
 
 def get_people_enqueuing_count(queue_id):
     """
-    Returns the number of people enqueuing in a given Queue
+    Returns the number of people enqueuing in a given Queue if found.
+    Returns -1 otherwise.
     """
-    # Call on a database SQL function GetPositionInLine(queue_id, guest_id)
-    result = db.session.query(
-        func.dbo.GetPeopleEnqueingCount(queue_id)).first()
+    try:
+        # Call on a database SQL function GetPeopleEnqueingCount(queue_id, guest_id)
+        result = db.session.query(
+            func.dbo.GetPeopleEnqueingCount(queue_id)).first()
+        return result[0]
+    except:
+        return -1
 
 
 def serve_guest(queue_id):
     """
-        Executes Db procedure to serve the 1st person in line in a given Queue.
-        Does not return anytihng.
-        """
-    db.session.query(
-        func.dbo.ServeGuest(queue_id)).first()
+    Executes Db procedure to serve the 1st person in line in a given Queue.
+
+    Returns True if guest has been served successfully.
+    Returns False otherwise.
+    """
+    connection = db.session.connection()
+    sql_query = "EXEC ServeGuest @QueueId = {};".format(queue_id)
+
+    try:
+        connection.execute(sql_query)
+        return True
+    except:
+        return False
 
 
 def dequeue_guest(queue_id):
     """
-    Executes Db procedure to dequeue the person being served a given Queue.
-    Does not return anytihng.
+    Executes Db procedure to dequeue the person being served in a given Queue.
+
+    Returns True if guest has been dequeued successfully.
+    Returns False otherwise.
     """
-    db.session.query(
-        func.dbo.DequeueGuest(queue_id)).first()
+    connection = db.session.connection()
+    sql_query = "EXEC DequeueGuest @QueueId = {};".format(queue_id)
+
+    try:
+        connection.execute(sql_query)
+        return True
+    except:
+        return False
 
 
 def close_queue(queue_id):
     """
-        Executes Db produce to close a given Queue.
-        Effect: All guests enqueuing in this Queue will be dequeued.
+    Executes Db produce to close a given Queue.
+    Effect: All guests enqueuing in this Queue will be dequeued.
 
-        Does not return anytihng.
-        """
-    db.session.query(
-        func.dbo.CloseQueue(queue_id)).first()
+    Returns True if queue has been closed successfully.
+    Returns False otherwise.
+    """
+    connection = db.session.connection()
+    sql_query = "EXEC CloseQueue @QueueId = {};".format(queue_id)
+
+    try:
+        connection.execute(sql_query)
+        return True
+    except:
+        return False
