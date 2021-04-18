@@ -468,8 +468,21 @@ def serve_guest(establishment_id, branch_id, queue_id):
         "message": "Guest Served!"
     }
     """
-    success = dal.serve_guest(queue_id)
-    if success:
+    guest_id = dal.serve_guest(queue_id)
+    print("Returned guest_id:", guest_id)
+    if guest_id != -1:
+        # send message to clients:
+        jsonObj = {
+            "status": 200,
+            "message": {
+                "content": 'A Guest within a Queue has been Served.',
+                "queue_id": queue_id,
+                "guest_id": guest_id
+            }
+        }
+        socketio.emit("serve", jsonObj, broadcast=True)
+
+        # return JSON object:
         return jsonify(
             status=200,
             message="Guest Served!"
@@ -477,7 +490,7 @@ def serve_guest(establishment_id, branch_id, queue_id):
     else:
         return jsonify(
             status=400,
-            message="Something went wrong. The Queue Id that you have provided may be invalid OR Someone might already be being served at the moment."
+            message="Something went wrong. The Queue Id that you have provided may be invalid OR Someone is already being served at the moment."
         )
 
 
@@ -492,15 +505,15 @@ def dequeue_guest(establishment_id, branch_id, queue_id):
         "message": "Guest Dequeued!"
     }
     """
-    success = dal.dequeue_guest(queue_id)
-    if success:
+    guest_id = dal.dequeue_guest(queue_id)
+    if guest_id != -1:
         # send message to clients:
         jsonObj = {
             "status": 200,
             "message": {
-                "content": 'A guest within the Queue with Id={} has been dequeued. Therefore, all guests within that queue must pull their updated Position In Line again.'.format(
-                    queue_id),
-                "queue_id": queue_id
+                "content": 'A Guest within a Queue has been Dequeued. Therefore, all guests within that queue must pull their updated Position In Line again.',
+                "queue_id": queue_id,
+                "guest_id": guest_id
             }
         }
         socketio.emit("dequeue", jsonObj, broadcast=True)
@@ -531,9 +544,14 @@ def close_queue(establishment_id, branch_id, queue_id):
     success = dal.close_queue(queue_id)
     if success:
         # send message to clients:
-        message = 'Queue with Id={} has been closed. Therefore, all guests within that queue must pull their updated Position In Line again.'.format(
-            queue_id)
-        send(message, broadcast=True)
+        jsonObj = {
+            "status": 200,
+            "message": {
+                "content": 'A Queue has been closed. Therefore, all guests within that queue must leave the queue.',
+                "queue_id": queue_id
+            }
+        }
+        socketio.emit("close", jsonObj, broadcast=True)
 
         return jsonify(
             status=200,

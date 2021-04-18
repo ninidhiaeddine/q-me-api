@@ -389,6 +389,13 @@ def get_token_by_id(token_id):
     return Token.query.filter_by(PK_Token=token_id).first()
 
 
+def get_tokens_by_status(queue_id, status):
+    """
+    Returns the list of tokens with a given status
+    """
+    return Token.query.filter_by(FK_Queue=queue_id, Status=status)
+
+
 def get_token(queue_id, guest_id):
     """
     Returns a token with a given queue id and guest id
@@ -478,34 +485,47 @@ def serve_guest(queue_id):
     """
     Executes Db procedure to serve the 1st person in line in a given Queue.
 
-    Returns True if guest has been served successfully.
-    Returns False otherwise.
+    Returns guest_id (of the served guest) if guest has been served successfully.
+    Returns -1 otherwise.
     """
-    connection = db.session.connection()
-    sql_query = "EXEC ServeGuest @QueueId = {};".format(queue_id)
+
+    connection = db.engine.raw_connection()
+    sql_query = """DECLARE @ServedGuestId INT
+        SET NOCOUNT ON
+        EXEC ServeGuest {}, @ServedGuestId OUTPUT
+        SELECT @ServedGuestId; """.format(queue_id)
 
     try:
-        connection.execute(sql_query)
-        return True
+        cursor = connection.cursor()
+        cursor.execute(sql_query)
+        result = cursor.fetchone()
+        connection.commit()
+        return result[0]
     except:
-        return False
+        return -1
 
 
 def dequeue_guest(queue_id):
     """
     Executes Db procedure to dequeue the person being served in a given Queue.
 
-    Returns True if guest has been dequeued successfully.
-    Returns False otherwise.
+    Returns guest_id (of the served guest) if guest has been dequeued successfully.
+    Returns -1 otherwise.
     """
-    connection = db.session.connection()
-    sql_query = "EXEC DequeueGuest @QueueId = {};".format(queue_id)
+    connection = db.engine.raw_connection()
+    sql_query = """DECLARE @DequeuedGuestId INT
+        SET NOCOUNT ON
+        EXEC DequeueGuest {}, @DequeuedGuestId OUTPUT
+        SELECT @DequeuedGuestId;""".format(queue_id)
 
     try:
-        connection.execute(sql_query)
-        return True
+        cursor = connection.cursor()
+        cursor.execute(sql_query)
+        result = cursor.fetchone()
+        connection.commit()
+        return result[0]
     except:
-        return False
+        return -1
 
 
 def close_queue(queue_id):
