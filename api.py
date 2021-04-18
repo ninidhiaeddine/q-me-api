@@ -4,7 +4,8 @@ from flask import Flask
 from flask_cors import CORS, cross_origin
 import urllib.parse
 
-# import database
+# import centralized modules
+from mysocketio import socketio
 from database import db
 
 # import blueprints
@@ -37,6 +38,12 @@ params = urllib.parse.quote_plus(CONNETION_STRING)
 app = Flask(__name__)
 # initialize CORS
 cors = CORS(app)
+# initialize socket IO
+socketio.app = app
+socketio.init_app(app, cors_allowed_origins="*")
+if __name__ == '__main__':
+    socketio.run(app)
+
 
 # app config:
 app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc:///?odbc_connect=%s" % params

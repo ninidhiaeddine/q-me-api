@@ -5,11 +5,10 @@ from io import BytesIO
 import io
 from models import Guest, Establishment, Branch, Token
 
-# TODO: Needs further discussion and polishing
 
-# generate QRCode for url to enqueue, user will be redirected to this url, click on "Queue me" and return img object
-# img.save() to save img locally, or send_file
-
+# generate QR code for queue
+# QR contains the endpoint name to which the client
+# can send a request to to get enqeueud up
 
 def generate_qr_for_queue(establishment_id, branch_id, queue_id):
     """
@@ -21,8 +20,8 @@ def generate_qr_for_queue(establishment_id, branch_id, queue_id):
     branch_id_str = str(branch_id)
     queue_id_str = str(queue_id)
 
-    s = str(establishment_id_str+"/branches/" +
-            branch_id_str+"/queues/"+queue_id_str+"/tokens")
+    endpoint = '/establishments/{}/branches/{}/queues/{}/tokens'.format(
+        establishment_id, branch_id, queue_id)
 
     qr = qrcode.QRCode(
         version=1,
@@ -30,7 +29,7 @@ def generate_qr_for_queue(establishment_id, branch_id, queue_id):
         box_size=10,
         border=4,)
 
-    qr.add_data(s)
+    qr.add_data(endpoint)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
 
