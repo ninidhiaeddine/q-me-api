@@ -469,7 +469,6 @@ def serve_guest(establishment_id, branch_id, queue_id):
     }
     """
     guest_id = dal.serve_guest(queue_id)
-    print("Returned guest_id:", guest_id)
     if guest_id != -1:
         # send message to clients:
         jsonObj = {
@@ -481,6 +480,12 @@ def serve_guest(establishment_id, branch_id, queue_id):
             }
         }
         socketio.emit("serve", jsonObj, broadcast=True)
+
+        # send sms to the concerned guest:
+        serving_queue = dal.get_queue_by_id(queue_id)
+        message_body = "You are about to be served in the '{}' queue. Please advance to the service booth!".format(
+            serving_queue.Name)
+        helpers.send_sms_to_guest(guest_id, message_body)
 
         # return JSON object:
         return jsonify(
