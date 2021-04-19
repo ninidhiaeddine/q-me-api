@@ -3,7 +3,12 @@ import json
 from flask import (
     Blueprint, flash, request, session, jsonify
 )
-from werkzeug.security import check_password_hash, generate_password_hash
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
+
+import bcrypt
 from models import Establishment
 import dal  # import data access layer
 import helpers
@@ -15,6 +20,7 @@ establishments_bp = Blueprint(
 # GET:
 
 @establishments_bp.route('', methods=['GET'])
+@jwt_required()
 def get_establishments():
     """
     Does not expect any JSON object.
@@ -64,65 +70,8 @@ def get_establishment_by_id(id):
 
 
 # POST:
+# Moved to register.py
 
-@establishments_bp.route('', methods=['POST'])
-def add_establishment():
-    """
-    Expects the following JSON Object:
-    {
-        "name" : "your establishment's name here",
-        "type" : 0,
-        "email" : "your email here",
-        "password" : "your password here",
-        "phone_number" : "your phone number here" /* (optional) */
-    }
-
-    Returns the following JSON Object if operation is successful:
-    {
-        "status" : 200,
-        "message" : "Establishment Added to Database successfully!"
-    }
-    """
-
-    # initially, assume that there is no error
-    error = None
-
-    if not helpers.request_is_valid(request, keys_list=['name', 'type', 'email', 'password']):
-        error = "Invalid JSON Object."
-
-    if error is None:
-        # map json object to class object
-        establishment = Establishment(
-            request.json.get('name'),
-            request.json.get('type'),
-            request.json.get('email'),
-            # TODO Fix DB Password Hashing Problem
-            # generate_password_hash(request.json.get('password'))
-            request.json.get('password'),
-            request.json.get('phone_number')
-        )
-
-        # verify input info
-        is_valid_tuple = establishment.is_valid()
-        if is_valid_tuple[0]:
-            if dal.get_establishment_by_email(establishment.Email) is not None:
-                error = 'Establishment with Email=\'{}\' is already registered.'.format(
-                    establishment.Email)
-        else:
-            error = is_valid_tuple[1]
-
-    # add to database if everything is ok
-    if error is None:
-        dal.add_establishment(establishment)
-        return jsonify(
-            status=200,
-            message="Establishment Added to Database successfully!"
-        )
-    else:
-        return jsonify(
-            status=400,
-            message=error
-        )
 
 # PUT:
 

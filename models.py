@@ -1,5 +1,6 @@
 import datetime
 
+
 # import database:
 from database import db
 
@@ -68,7 +69,7 @@ class Establishment(db.Model):
     Name = db.Column(db.String(20), nullable=False)
     Type = db.Column(db.Integer, nullable=False)
     Email = db.Column(db.String(20), nullable=False)
-    Password = db.Column(db.String(20), nullable=False)
+    Password = db.Column(db.String(60), nullable=False)
     PhoneNumber = db.Column(db.String(20), nullable=True)
 
     def __init__(self, name, type, email, password, phone_number=None):
@@ -115,8 +116,8 @@ class Establishment(db.Model):
         elif len(self.Email) > 20:
             message += "Email is too long (20 characters max). | "
 
-        if type(self.Password) is not str:
-            message += "Password is invalid (must be a string). | "
+        # if type(self.Password) is not str:
+        #     message += "Password is invalid (must be a string). | "
 
         if self.PhoneNumber is not None:
             if type(self.PhoneNumber) is not str:
@@ -144,7 +145,7 @@ class Branch(db.Model):
     FK_Establishment = db.Column(db.Integer, nullable=False)
     Address = db.Column(db.String(200), nullable=False)
     Email = db.Column(db.String(50), nullable=False)
-    Password = db.Column(db.String(50), nullable=False)
+    Password = db.Column(db.String(60), nullable=False)
     PhoneNumber = db.Column(db.String(20), nullable=True)
     Latitude = db.Column(db.Float, nullable=True)
     Longitude = db.Column(db.Float, nullable=True)
@@ -194,8 +195,8 @@ class Branch(db.Model):
         if type(self.Email) is not str:
             message += "Email is invalid (must be a string). | "
 
-        if type(self.Password) is not str:
-            message += "Password is invalid (must be a string). | "
+        # if type(self.Password) is not str:
+        #     message += "Password is invalid (must be a string). | "
 
         if self.PhoneNumber is not None:
             if type(self.PhoneNumber) is not str:
@@ -275,9 +276,11 @@ class Queue(db.Model):
         # return tuple
         return (is_valid, message)
 
+      
     def add_qr(self, qr_str):
         self.QrCode = qr_str
 
+        
     def get_qr(self):
         return self.QrCode
 
@@ -297,7 +300,7 @@ class Token(db.Model):
     0 : waiting (default)
     1 : Being serviced
     -1 : done
-    every other value returns an error  
+    every other value returns an error
     '''
 
     def __init__(self, guest_id, queue_id):
@@ -327,6 +330,7 @@ class Token(db.Model):
         message = ""
 
         # verify fields:
+        
         if type(self.FK_Guest) is not int:
             message += "Guest Id is not valid (must be an integer). |"
 
@@ -335,6 +339,59 @@ class Token(db.Model):
 
         if self.Status != 0 and self.Status != 1 and self.Status != -1:
             message += "Status Value is not valid, must be either 1 or -1 or 0. |"
+            
+        # finalize returned tuple:
+        if message == "":
+            is_valid = True
+            message = "OK"
+        else:
+            is_valid = False
+            # remove last 3 characters as they have an unnecessary bar in them
+            message = message[:-3]
+
+        # return tuple
+        return (is_valid, message)
+
+
+class CovidInfection(db.Model):
+    PK_CovidInfection = db.Column(db.Integer, primary_key=True)
+    FK_Guest = db.Column(db.Integer, nullable=False)
+    DateTested = db.Column(db.DateTime, nullable=False)
+    DateRecorded = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, guest_id, dateTested, dateRecorded):
+        self.FK_Guest = guest_id
+        self.DateTested = dateTested
+        self.DateRecorded = dateRecorded
+
+    def serialize(self):
+        return {
+            'PK_CovidInfection': self.PK_CovidInfection,
+            'FK_Guest': self.FK_Guest,
+            'DateTested': self.DateTested,
+            'DateRecorded': self.DateRecorded
+        }
+
+    def update(new_CovidInfection):
+        self.FK_Guest = new_CovidInfection.FK_Guest
+        self.DateTested = new_CovidInfection.DateTested
+        self.DateRecorded = new_CovidInfection.DateRecorded
+
+    def is_valid(self):
+        """
+        Returns a Tuple(is_valid, message)
+        """
+        message = ""
+
+        # verify fields:
+        if type(self.FK_Guest) is not int:
+            message += "Guest ID format incorrect. | "
+
+        if type(self.DateTested) is not datetime.datetime:
+            message += "Incorrect format of tested date. | "
+
+        if type(self.DateRecorded) is not datetime.datetime:
+            message += "Incorrect format of recorded date. | "
 
         # finalize returned tuple:
         if message == "":
@@ -347,3 +404,104 @@ class Token(db.Model):
 
         # return tuple
         return (is_valid, message)
+
+
+class Feedback(db.Model):
+    PK_Feedback = db.Column(db.Integer, primary_key=True)
+    FK_Guest = db.Column(db.Integer, nullable=False)
+    FK_Branch = db.Column(db.Integer, nullable=False)
+    Message = db.Column(db.String, nullable=False)
+
+    def __init__(self, guest_id, branch_id, message):
+        self.FK_Guest = guest_id
+        self.FK_Branch = branch_id
+        self.Message = message
+
+    def serialize(self):
+        return
+        {
+            'PK_Feedback': self.PK_Feedback,
+            'FK_Guest': self.FK_Guest,
+            'FK_Branch': self.FK_Branch,
+            'Message': self.Message
+        }
+
+    def update(new_Feedback):
+        self.FK_Guest = new_Feedback.FK_Guest
+        self.FK_Branch = new_Feedback.FK_Branch
+        self.message = new_Feedback.Message
+
+    def is_valid(self):
+        """
+        Returns a Tuple(is_valid, message)
+        """
+
+        message = ""
+
+        if type(self.FK_Guest) is not int:
+            message += "Guest ID format incorrect. | "
+
+        if type(self.FK_Branch) is not int:
+            message += "Branch ID format incorrect. | "
+
+        if type(self.Message) is not str:
+            message += "Message format incorrect. |"
+
+        # finalize returned tuple:
+        if message == "":
+            is_valid = True
+            message = "OK"
+        else:
+            is_valid = False
+            # remove last 3 characters as they have an unnecessary bar in them
+            message = message[:-3]
+
+        # return tuple
+        return (is_valid, message)
+
+
+class Rating(db.Model):
+    PK_Rating = db.Column(db.Integer, primary_key=True)
+    FK_Guest = db.Column(db.Integer, nullable=False)
+    FK_Queue = db.Column(db.Integer, nullable=False)
+    Rating = db.Column(db.Float, nullable=False)
+    Comment = db.Column(db.String, nullable=True)
+
+    def __init__(self, guest_id, queue_id, rating, comment):
+        self.FK_Guest = guest_id
+        self.FK_Queue = queue_id
+        self.Rating = rating
+        self.Comment = comment
+
+    def serialize(self):
+        return {
+            'PK_Rating': self.PK_Rating,
+            'FK_Guest': self.FK_Guest,
+            'FK_Queue': self.FK_Queue,
+            'Rating': self.Rating,
+            'Comment': self.Comment
+        }
+
+    def update(new_Rating):
+        self.FK_Guest = new_Rating.FK_Guest
+        self.FK_Queue = new_Rating.FK_Queue
+        self.Rating = new_Rating.Rating
+        self.Comment = new_Rating.Comment
+
+    def is_valid(self):
+        """
+        Returns a Tuple(is_valid, message)
+        """
+        message = ""
+
+        # verify fields:
+        if type(self.FK_Guest) is not int:
+            message += "Guest ID format incorrect. | "
+
+        if type(self.FK_Queue) is not int:
+            message += "Queue ID format incorrect. | "
+
+        if type(self.Rating) is not float:
+            message += "Rating format incorrect, must be float. | "
+        if type(self.Comment) is not str:
+            message += "Comment format incorrect, must be text. | "    

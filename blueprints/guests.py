@@ -3,7 +3,10 @@ import json
 from flask import (
     Blueprint, flash, request, session, jsonify
 )
-from werkzeug.security import check_password_hash, generate_password_hash
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
 from models import Guest
 import dal  # import data access layer
 import helpers
@@ -14,6 +17,8 @@ guests_bp = Blueprint('guests', __name__, url_prefix='/guests')
 # GET:
 
 @guests_bp.route('', methods=['GET'])
+# TODO add custom decorator
+@jwt_required()
 def get_guests():
     """
     Does not expect any JSON object.

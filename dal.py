@@ -1,7 +1,7 @@
 # Data Access Layer (Script)
 
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import Guest, Establishment, Branch, Queue, Token
+from models import Guest, Establishment, Branch, Queue, Token, CovidInfection
 
 # import database:
 from database import db
@@ -182,11 +182,11 @@ def get_branches(establishment_id):
     return Branch.query.filter_by(FK_Establishment=establishment_id).all()
 
 
-def get_branch_by_id(establishment_id, branch_id):
+def get_branch_by_id(branch_id):
     """
     Returns the target branch if found. Returns None otherwise.
     """
-    return Branch.query.filter_by(FK_Establishment=establishment_id, PK_Branch=branch_id).first()
+    return Branch.query.filter_by(PK_Branch=branch_id).first()
 
 
 def get_branch_by_name(establishment_id, name):
@@ -203,18 +203,18 @@ def get_branch_by_address(establishment_id, address):
     return Branch.query.filter_by(FK_Establishment=establishment_id, address=address).first()
 
 
-def get_branch_by_email(establishment_id, email):
+def get_branch_by_email(email):
     """
     Returns the target branch
     """
-    return Branch.query.filter_by(FK_Establishment=establishment_id, Email=email).first()
+    return Branch.query.filter_by(Email=email).first()
 
 
-def get_branch_by_phone_number(establishemnt_id, phone_number):
+def get_branch_by_phone_number(phone_number):
     """
     Returns the target branch
     """
-    return Branch.query.filter_by(FK_Establishment=establishment_id, PhoneNumber=phone_number).first()
+    return Branch.query.filter_by(PhoneNumber=phone_number).first()
 
 
 def get_branch_by_gps_location(establishment_id, latitude, longitude):
@@ -353,10 +353,10 @@ def delete_queue_by_id(queue_id):
 
 def add_qr_to_queue(queue_id, qr_str):
     """
-        takes a string QR code and adds it to the database
+    takes a string QR code and adds it to the database
     """
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
-
+    
     # add qr code to the queue:
     target_queue.add_qr(qr_str)
 
@@ -365,12 +365,11 @@ def add_qr_to_queue(queue_id, qr_str):
 
 
 def get_qr_by_queue_id(queue_id):
-    '''
-        takes a queue id and return its QR code as a string
-    '''
+    """
+    takes a queue id and return its QR code as a string
+    """
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
     return target_queue.get_qr(target_queue)
-
 
 # Tokens related functions:
 
@@ -401,6 +400,7 @@ def get_token(queue_id, guest_id):
     Returns a token with a given queue id and guest id
     """
     return Token.query.filter_by(FK_Queue=queue_id, FK_Guest=guest_id).first()
+
 
 
 def add_token(token):
@@ -451,6 +451,63 @@ def delete_token_by_id(token_id):
         return True
     else:
         return False
+      
+      
+ def get_covid_infections():
+    """
+    Returns the list of covid_infections
+    """
+    return CovidInfection.query.all()
+
+
+# def get_covid_infection_by_id(id):
+#     """
+#     Returns the target covid_infection if found. Returns None otherwise.
+#     """
+#     return CovidInfection.query.filter_by(PK_CovidInfection=id).first()
+
+
+# def add_covid_infection(covid_infection):
+#     """
+#     Does not return anything
+#     """
+#     db.session.add(covid_infection)
+#     db.session.commit()
+
+# def update_covid_infection_by_id(id, covid_infection):
+#     """
+#     Returns True if update succeeds; returns False otherwise.
+#     """
+#     target_covid_infection = CovidInfection.query.filter_by(
+#         PK_CovidInfection=id).first()
+#     if target_covid_infection is not None:
+#         target_covid_infection.update(covid_infection)
+#         db.session.commit()
+#         return True
+#     else:
+#         return False
+
+
+# def delete_covid_infections():
+#     """
+#     Does not return anything.
+#     """
+#     CovidInfection.query.delete()
+#     db.session.commit()
+
+
+# def delete_covid_infection_by_id(id):
+#     """
+#     Returns True if deletion succeeds; returns False otherwise.
+#     """
+#     target_covid_infection = CovidInfection.query.filter_by(
+#         PK_CovidInfection=id).first()
+#     if target_covid_infection is not None:
+#         db.session.delete(target_covid_infection)
+#         db.session.commit()
+#         return True
+#     else:
+#         return False
 
 
 def get_position_in_line(queue_id, guest_id):

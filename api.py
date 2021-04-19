@@ -4,11 +4,19 @@ from flask import Flask
 from flask_cors import CORS, cross_origin
 import urllib.parse
 
+
 # import centralized modules
 from mysocketio import socketio
 from database import db
 
+# import Jwt:
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
+
 # import blueprints
+from blueprints.registration import registration_bp
 from blueprints.auth import auth_bp
 from blueprints.guests import guests_bp
 from blueprints.establishments import establishments_bp
@@ -38,12 +46,12 @@ params = urllib.parse.quote_plus(CONNETION_STRING)
 app = Flask(__name__)
 # initialize CORS
 cors = CORS(app)
+
 # initialize socket IO
 socketio.app = app
 socketio.init_app(app, cors_allowed_origins="*")
 if __name__ == '__main__':
     socketio.run(app)
-
 
 # app config:
 app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc:///?odbc_connect=%s" % params
@@ -51,21 +59,28 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SECRET_KEY'] = "cM9s$AZTdeZs5Yt"
 app.config['CORS_HEADERS'] = 'Content-Type'
 
+# initialize JWT
+app.config['JWT_SECRET_KEY'] = '5GNVM9McWdtnN778Fhmj'  # Change this!
+jwt = JWTManager(app)
+
 
 # register blueprints
+app.register_blueprint(registration_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(guests_bp)
 app.register_blueprint(establishments_bp)
 app.register_blueprint(branches_bp)
 app.register_blueprint(queues_bp)
 app.register_blueprint(tokens_bp)
+app.register_blueprint(covid_infections_bp)
+
 
 # TODO: Implement the following blueprints:
 # app.register_blueprint(ratings_bp)
 # app.register_blueprint(feedback_bp)
 # app.register_blueprint(contact_messages_bp)
 # app.register_blueprint(operating_hours_bp)
-# app.register_blueprint(covid_infections_bp)
+
 
 # extensions
 db.app = app

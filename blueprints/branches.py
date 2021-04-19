@@ -3,10 +3,16 @@ import json
 from flask import (
     Blueprint, flash, request, session, jsonify
 )
-from werkzeug.security import check_password_hash, generate_password_hash
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
+
 from models import Branch
 import dal  # import data access layer
 import helpers
+import bcrypt
+import custom_decorator
 
 branches_bp = Blueprint('branches', __name__, url_prefix='/establishments')
 
@@ -14,6 +20,7 @@ branches_bp = Blueprint('branches', __name__, url_prefix='/establishments')
 # GET:
 
 @branches_bp.route('/<int:establishment_id>/branches', methods=['GET'])
+@custom_decorator.establishment_required()
 def get_branches(establishment_id):
     """
     Does not expect any JSON object.
@@ -64,6 +71,7 @@ def get_branch_by_id(establishment_id, branch_id):
 # POST:
 
 @branches_bp.route('/<int:establishment_id>/branches', methods=['POST'])
+# @custom_decorator.establishment_required()
 def add_branch(establishment_id):
     """
     Expects the following JSON Object:
@@ -90,13 +98,16 @@ def add_branch(establishment_id):
     if not helpers.request_is_valid(request, keys_list=['address', 'email', 'password']):
         error = "Invalid JSON Object."
 
+    password = bcrypt.hashpw(request.json.get(
+        'password').encode('utf-8'), bcrypt.gensalt())
+
     if error is None:
         # map json object to class object
         branch = Branch(
             establishment_id,
             request.json.get('address'),
             request.json.get('email'),
-            request.json.get('password'),
+            password,
             request.json.get('phone_number'),
             request.json.get('latitude'),
             request.json.get('longitude')
@@ -239,5 +250,3 @@ def delete_branch_by_id(establishment_id, branch_id):
             message="Branch with ID={} not found. No changes occured!".format(
                 branch_id)
         )
-
-
