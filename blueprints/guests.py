@@ -14,6 +14,8 @@ guests_bp = Blueprint('guests', __name__, url_prefix='/guests')
 # GET:
 
 @guests_bp.route('', methods=['GET'])
+# TODO add custom decorator
+@jwt_required()
 def get_guests():
     """
     Does not expect any JSON object.

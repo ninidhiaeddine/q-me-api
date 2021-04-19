@@ -44,7 +44,7 @@ app = Flask(__name__)
 # initialize CORS
 cors = CORS(app)
 # initialize JWT
-app.config['JWT_SECRET_KEY'] = 'secret-secret'  # Change this!
+app.config['JWT_SECRET_KEY'] = '5GNVM9McWdtnN778Fhmj'  # Change this!
 jwt = JWTManager(app)
 
 # app config:

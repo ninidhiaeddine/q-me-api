@@ -9,7 +9,6 @@ from flask_jwt_extended import (
     get_jwt_identity
 )
 
-from werkzeug.security import check_password_hash, generate_password_hash
 import bcrypt
 from models import Guest, Establishment, Branch
 import dal  # import data access layer
@@ -106,8 +105,6 @@ def login_establishment():
 
     if not establishment_record:
         error = "Email not registered, please register before logging in"
-    # typeofregistrdPwd = str(type(establishment_record.Password))
-    # return typeofregistrdPwd
 
     if not bcrypt.checkpw(password.encode('utf-8'), establishment_record.Password.encode('utf-8')):
         error = "Incorrect Password"
@@ -115,29 +112,14 @@ def login_establishment():
     if error is None:
         session.clear()
         session['establishment_id'] = establishment_record.PK_Establishment
-        access_token = create_access_token(identity={'email': email})
-        return jsonify(
-            status=200,
-            access_token=access_token
-        )
+        access_token = create_access_token(
+            identity={'email': email}, additional_claims={"is_administrator": True})
+        return {"access_token": access_token}, 200
     else:
         return jsonify(
             status=400,
             message=error
         )
-
-    # # start new session if everything is ok
-    # if error is None:
-
-    #     return jsonify(
-    #         status=200,
-    #         message="Establishment logged in successfully!"
-    #     )
-    # else:
-    #     return jsonify(
-    #         status=400,
-    #         message=error
-    #     )
 
 
 @auth_bp.route('/logout', methods=['GET'])

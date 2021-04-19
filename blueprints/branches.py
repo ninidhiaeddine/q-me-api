@@ -3,16 +3,16 @@ import json
 from flask import (
     Blueprint, flash, request, session, jsonify
 )
-# from flask_jwt_extended import (
-#     JWTManager, jwt_required, create_access_token,
-#     get_jwt_identity
-# )
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
 
-from werkzeug.security import check_password_hash, generate_password_hash
 from models import Branch
 import dal  # import data access layer
 import helpers
 import bcrypt
+import custom_decorator
 
 branches_bp = Blueprint('branches', __name__, url_prefix='/establishments')
 
@@ -20,6 +20,7 @@ branches_bp = Blueprint('branches', __name__, url_prefix='/establishments')
 # GET:
 
 @branches_bp.route('/<int:establishment_id>/branches', methods=['GET'])
+@custom_decorator.establishment_required()
 def get_branches(establishment_id):
     """
     Does not expect any JSON object.
