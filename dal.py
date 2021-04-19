@@ -6,6 +6,9 @@ from models import Guest, Establishment, Branch, Queue, Token, CovidInfection
 # import database:
 from database import db
 
+# importing func for function calls
+from sqlalchemy import func
+
 
 # Guests related functions:
 
@@ -71,9 +74,9 @@ def delete_guest_by_id(id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_guest = Guest.query.filter_by(PK_Guest=id).first()
+    target_guest = Guest.query.filter_by(PK_Guest=id)
     if target_guest is not None:
-        db.session.delete(target_guest)
+        target_guest.delete()
         db.session.commit()
         return True
     else:
@@ -160,9 +163,9 @@ def delete_establishment_by_id(id):
     Returns True if deletion succeeds; returns False otherwise.
     """
     target_establishment = Establishment.query.filter_by(
-        PK_Establishment=id).first()
+        PK_Establishment=id)
     if target_establishment is not None:
-        db.session.delete(target_establishment)
+        target_establishment.delete()
         db.session.commit()
         return True
     else:
@@ -249,10 +252,10 @@ def delete_branches(establishment_id):
     Returns True if deletion succeeds; returns False otherwise.
     """
     target_branches = Branch.query.filter_by(
-        FK_Establishment=establishment_id).all()
+        FK_Establishment=establishment_id)
 
     if target_branches is not None:
-        db.session.delete(target_branches)
+        target_branches.delete()
         db.session.commit()
         return True
     else:
@@ -264,17 +267,15 @@ def delete_branch_by_id(establishment_id, branch_id):
     Returns True if deletion succeeds; returns False otherwise.
     """
     target_branch = Branch.query.filter_by(
-        PK_Branch=branch_id, FK_Establishment=establishment_id).first()
+        PK_Branch=branch_id, FK_Establishment=establishment_id)
 
     if target_branch is not None:
-        db.session.delete(target_branch)
+        target_branch.delete()
         db.session.commit()
         return True
     else:
         return False
 
-
-# TODO: Finish designing remaining DAL functions:
 
 # Queues related functions:
 
@@ -290,12 +291,12 @@ def get_queue_by_id(queue_id):
     """
     Returns the target queue if found. Returns None otherwise.
     """
-    return Queue.query.filter_by(PK_Queue=queue_id).all()
+    return Queue.query.filter_by(PK_Queue=queue_id).first()
 
 
 def get_queue_by_name(branch_id, name):
     """
-    Returns the target queue
+    Returns the target queue if found. Returns None otherwise.
     """
     return Queue.query.filter_by(FK_Branch=branch_id, Name=name).first()
 
@@ -326,10 +327,10 @@ def delete_queues(branch_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_queues = Queue.query.filter_by(FK_Branch=branch_id).all()
+    target_queues = Queue.query.filter_by(FK_Branch=branch_id)
 
     if target_queues is not None:
-        db.session.delete(target_queues)
+        target_queues.delete()
         db.session.commit()
         return True
     else:
@@ -340,33 +341,35 @@ def delete_queue_by_id(queue_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
+    target_queue = Queue.query.filter_by(PK_Queue=queue_id)
 
     if target_queue is not None:
-        db.session.delete(target_queue)
+        target_queue.delete()
         db.session.commit()
         return True
     else:
         return False
 
 
-def add_qr_to_queue(queue_id, QR_str):
-    '''
-        takes a string QR code and adds it to the database
-    '''
+def add_qr_to_queue(queue_id, qr_str):
+    """
+    takes a string QR code and adds it to the database
+    """
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
+    
+    # add qr code to the queue:
+    target_queue.add_qr(qr_str)
 
-    db.session.add_qr(QR_str, queue_id)
+    # commit the changes:
     db.session.commit()
 
 
-def get_QR_queue_by_id(queue_id):
-    '''
-        takes a queue id and return its QR code as a string
-    '''
+def get_qr_by_queue_id(queue_id):
+    """
+    takes a queue id and return its QR code as a string
+    """
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
-    return target_queue.get_QR(target_queue)
-
+    return target_queue.get_qr(target_queue)
 
 # Tokens related functions:
 
@@ -382,7 +385,22 @@ def get_token_by_id(token_id):
     """
     Returns a token
     """
-    return Token.query.filter_by(PK_Token=token_id).all()
+    return Token.query.filter_by(PK_Token=token_id).first()
+
+
+def get_tokens_by_status(queue_id, status):
+    """
+    Returns the list of tokens with a given status
+    """
+    return Token.query.filter_by(FK_Queue=queue_id, Status=status)
+
+
+def get_token(queue_id, guest_id):
+    """
+    Returns a token with a given queue id and guest id
+    """
+    return Token.query.filter_by(FK_Queue=queue_id, FK_Guest=guest_id).first()
+
 
 
 def add_token(token):
@@ -411,10 +429,10 @@ def delete_tokens(queue_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_tokens = Token.query.filter_by(FK_Queue=queue_id).all()
+    target_tokens = Token.query.filter_by(FK_Queue=queue_id)
 
     if target_tokens is not None:
-        db.session.delete(target_tokens)
+        target_tokens.delete()
         db.session.commit()
         return True
     else:
@@ -425,17 +443,17 @@ def delete_token_by_id(token_id):
     """
     Returns True if deletion succeeds; returns False otherwise.
     """
-    target_token = Token.query.filter_by(PK_Token=token_id).all()
+    target_token = Token.query.filter_by(PK_Token=token_id)
 
     if target_token is not None:
-        db.session.delete(target_token)
+        target_token.delete()
         db.session.commit()
         return True
     else:
         return False
-
-
-def get_covid_infections():
+      
+      
+ def get_covid_infections():
     """
     Returns the list of covid_infections
     """
@@ -455,7 +473,6 @@ def get_covid_infections():
 #     """
 #     db.session.add(covid_infection)
 #     db.session.commit()
-
 
 # def update_covid_infection_by_id(id, covid_infection):
 #     """
@@ -491,3 +508,96 @@ def get_covid_infections():
 #         return True
 #     else:
 #         return False
+
+
+def get_position_in_line(queue_id, guest_id):
+    """
+    Returns the Positon in Line of a given Guest if found.
+    Returns -1 otherwise.
+    """
+    try:
+        # Call on a database SQL function GetPositionInLine(queue_id, guest_id)
+        result = db.session.query(
+            func.dbo.GetPositionInLine(queue_id, guest_id)).first()
+        return result[0]
+    except:
+        return -1
+
+
+def get_people_enqueuing_count(queue_id):
+    """
+    Returns the number of people enqueuing in a given Queue if found.
+    Returns -1 otherwise.
+    """
+    try:
+        # Call on a database SQL function GetPeopleEnqueingCount(queue_id, guest_id)
+        result = db.session.query(
+            func.dbo.GetPeopleEnqueingCount(queue_id)).first()
+        return result[0]
+    except:
+        return -1
+
+
+def serve_guest(queue_id):
+    """
+    Executes Db procedure to serve the 1st person in line in a given Queue.
+
+    Returns guest_id (of the served guest) if guest has been served successfully.
+    Returns -1 otherwise.
+    """
+
+    connection = db.engine.raw_connection()
+    sql_query = """DECLARE @ServedGuestId INT
+        SET NOCOUNT ON
+        EXEC ServeGuest {}, @ServedGuestId OUTPUT
+        SELECT @ServedGuestId; """.format(queue_id)
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(sql_query)
+        result = cursor.fetchone()
+        connection.commit()
+        return result[0]
+    except:
+        return -1
+
+
+def dequeue_guest(queue_id):
+    """
+    Executes Db procedure to dequeue the person being served in a given Queue.
+
+    Returns guest_id (of the served guest) if guest has been dequeued successfully.
+    Returns -1 otherwise.
+    """
+    connection = db.engine.raw_connection()
+    sql_query = """DECLARE @DequeuedGuestId INT
+        SET NOCOUNT ON
+        EXEC DequeueGuest {}, @DequeuedGuestId OUTPUT
+        SELECT @DequeuedGuestId;""".format(queue_id)
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(sql_query)
+        result = cursor.fetchone()
+        connection.commit()
+        return result[0]
+    except:
+        return -1
+
+
+def close_queue(queue_id):
+    """
+    Executes Db produce to close a given Queue.
+    Effect: All guests enqueuing in this Queue will be dequeued.
+
+    Returns True if queue has been closed successfully.
+    Returns False otherwise.
+    """
+    connection = db.session.connection()
+    sql_query = "EXEC CloseQueue @QueueId = {};".format(queue_id)
+
+    try:
+        connection.execute(sql_query)
+        return True
+    except:
+        return False

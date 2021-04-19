@@ -143,8 +143,8 @@ class Establishment(db.Model):
 class Branch(db.Model):
     PK_Branch = db.Column(db.Integer, primary_key=True)
     FK_Establishment = db.Column(db.Integer, nullable=False)
-    Address = db.Column(db.String(50), nullable=False)
-    Email = db.Column(db.String(20), nullable=False)
+    Address = db.Column(db.String(200), nullable=False)
+    Email = db.Column(db.String(50), nullable=False)
     Password = db.Column(db.String(60), nullable=False)
     PhoneNumber = db.Column(db.String(20), nullable=True)
     Latitude = db.Column(db.Float, nullable=True)
@@ -194,8 +194,6 @@ class Branch(db.Model):
 
         if type(self.Email) is not str:
             message += "Email is invalid (must be a string). | "
-        elif len(self.Email) > 20:
-            message += "Email is too long (20 characters max). | "
 
         # if type(self.Password) is not str:
         #     message += "Password is invalid (must be a string). | "
@@ -228,7 +226,7 @@ class Queue(db.Model):
     FK_Branch = db.Column(db.Integer, nullable=False)
     Name = db.Column(db.String(20), nullable=False)
     ApproximateTimeOfService = db.Column(db.Float, nullable=False)
-    QRcodeEncoded = db.Column(db.String(8000), nullable=True)
+    QrCode = db.Column(db.LargeBinary(8000), nullable=True)
 
     def __init__(self, branch_id, Name, ApproximateTimeOfService):
         self.FK_Branch = branch_id
@@ -240,13 +238,15 @@ class Queue(db.Model):
             'PK_Queue': self.PK_Queue,
             'FK_Branch': self.FK_Branch,
             'Name': self.Name,
-            'ApproximateTimeOfService': self.ApproximateTimeOfService
+            'ApproximateTimeOfService': self.ApproximateTimeOfService,
+            'QrCode': self.QrCode
         }
 
     def update(new_queue):
         self.FK_Branch = new_queue.FK_Branch
         self.Name = new_queue.Name
         self.ApproximateTimeOfService = new_queue.ApproximateTimeOfService
+        self.QrCode = new_queue.QrCode
 
     def is_valid(self):
         """
@@ -256,9 +256,15 @@ class Queue(db.Model):
 
         # verify fields:
         if type(self.FK_Branch) is not int:
-            message += "Branch id is invalid (must be an integer). | "
+            message += "Branch Id is invalid (must be an integer). | "
 
-        # finalize returned tuple:
+        if type(self.Name) is not str:
+            message += "Name is invalid (must be a string). | "
+
+        if type(self.ApproximateTimeOfService) is not float:
+            message += "Approximate Time of Service is invalid (must be a float). | "
+
+            # finalize returned tuple:
         if message == "":
             is_valid = True
             message = "OK | Cannot verify \'Referential Integrity\' for Foreign Key \'BranchId\' => Must be verified using DAL."
@@ -270,21 +276,25 @@ class Queue(db.Model):
         # return tuple
         return (is_valid, message)
 
-    def add_qr(QR_str, self):
-        self.QRcodeEncoded = QR_str
+      
+    def add_qr(self, qr_str):
+        self.QrCode = qr_str
 
-    def get_QR(self):
-        return self.QRcodeEncoded
+        
+    def get_qr(self):
+        return self.QrCode
 
 
 class Token(db.Model):
     PK_Token = db.Column(db.Integer, primary_key=True)
     FK_Guest = db.Column(db.Integer, nullable=False)
     FK_Queue = db.Column(db.Integer, nullable=False)
-    Status = db.Column(db.Integer, nullable=False)
+    Status = db.Column(db.Integer, default=0, nullable=False)
     DateAndTime = db.Column(
         db.DateTime, default=datetime.datetime.utcnow, nullable=False)
-    PositionInLine = db.Column(db.Integer, nullable=False)
+    # 1. Deleted the field 'PositionInLine'
+    # 2. Replaced it with an SQL Function that takes care of
+    #    computing the PositionInLine
 
     '''Status:
     0 : waiting (default)
@@ -293,12 +303,10 @@ class Token(db.Model):
     every other value returns an error
     '''
 
-    def __init__(self, guest_id, queue_id, date_time, position, status=0):
+    def __init__(self, guest_id, queue_id):
         self.FK_Guest = guest_id
         self.FK_Queue = queue_id
-        self.Status = status
-        self.DateAndTime = date_time
-        self.PositionInLine = position
+        self.Status = 0
 
     def serialize(self):
         return {
@@ -307,15 +315,13 @@ class Token(db.Model):
             'FK_Queue': self.FK_Queue,
             'Status': self.Status,
             'DateAndTime': self.DateAndTime,
-            'PositionInLine': self.PositionInLine
         }
 
-    def update(new_qu):
-        self.FK_Guest = new_qu.FK_Guest
-        self.FK_Queue = new_qu.FK_Queue
-        self.Status = new_qu.Status
-        self.DateAndTime = new_qu.DateAndTime
-        self.PositionInLine = new_qu.PositionInLine
+    def update(new_token):
+        self.FK_Guest = new_token.FK_Guest
+        self.FK_Queue = new_token.FK_Queue
+        self.Status = new_token.Status
+        self.DateAndTime = new_token.DateAndTime
 
     def is_valid(self):
         """
@@ -324,12 +330,16 @@ class Token(db.Model):
         message = ""
 
         # verify fields:
+        
+        if type(self.FK_Guest) is not int:
+            message += "Guest Id is not valid (must be an integer). |"
+
+        if type(self.FK_Queue) is not int:
+            message += "Queue Id is not valid (must be an integer). |"
+
         if self.Status != 0 and self.Status != 1 and self.Status != -1:
             message += "Status Value is not valid, must be either 1 or -1 or 0. |"
-
-        if self.PositionInLine < 0:
-            message += "Position in line is invalid. Must be a positive integer"
-
+            
         # finalize returned tuple:
         if message == "":
             is_valid = True
@@ -494,16 +504,4 @@ class Rating(db.Model):
         if type(self.Rating) is not float:
             message += "Rating format incorrect, must be float. | "
         if type(self.Comment) is not str:
-            message += "Comment format incorrect, must be text. | "
-
-        # finalize returned tuple:
-        if message == "":
-            is_valid = True
-            message = "OK"
-        else:
-            is_valid = False
-            # remove last 3 characters as they have an unnecessary bar in them
-            message = message[:-3]
-
-        # return tuple
-        return (is_valid, message)
+            message += "Comment format incorrect, must be text. | "    
