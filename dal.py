@@ -356,7 +356,7 @@ def add_qr_to_queue(queue_id, qr_str):
     takes a string QR code and adds it to the database
     """
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
-    
+
     # add qr code to the queue:
     target_queue.add_qr(qr_str)
 
@@ -400,7 +400,6 @@ def get_token(queue_id, guest_id):
     Returns a token with a given queue id and guest id
     """
     return Token.query.filter_by(FK_Queue=queue_id, FK_Guest=guest_id).first()
-
 
 
 def add_token(token):
@@ -451,9 +450,9 @@ def delete_token_by_id(token_id):
         return True
     else:
         return False
-      
-      
- def get_covid_infections():
+
+
+def get_covid_infections():
     """
     Returns the list of covid_infections
     """
