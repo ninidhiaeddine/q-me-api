@@ -9,10 +9,10 @@ from flask import (
 )
 
 
-register_bp = Blueprint('register', __name__, url_prefix='/register')
+registration_bp = Blueprint('registration', __name__, url_prefix='/register')
 
 
-@register_bp.route('/guests', methods=['POST'])
+@registration_bp.route('/guests', methods=['POST'])
 def register_guest():
     """
     Expects the following JSON Object:
@@ -71,7 +71,7 @@ def register_guest():
         )
 
 
-@register_bp.route('/establishments', methods=['POST'])
+@registration_bp.route('/establishments', methods=['POST'])
 def register_establishment():
     """
     Expects the following JSON Object:

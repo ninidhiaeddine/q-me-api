@@ -13,7 +13,7 @@ from flask_jwt_extended import (
 from database import db
 
 # import blueprints
-from blueprints.register import register_bp
+from blueprints.registration import registration_bp
 from blueprints.auth import auth_bp
 from blueprints.guests import guests_bp
 from blueprints.establishments import establishments_bp
@@ -55,7 +55,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 
 # register blueprints
-app.register_blueprint(register_bp)
+app.register_blueprint(registration_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(guests_bp)
 app.register_blueprint(establishments_bp)

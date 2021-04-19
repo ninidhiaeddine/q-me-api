@@ -179,11 +179,11 @@ def get_branches(establishment_id):
     return Branch.query.filter_by(FK_Establishment=establishment_id).all()
 
 
-def get_branch_by_id(establishment_id, branch_id):
+def get_branch_by_id(branch_id):
     """
     Returns the target branch if found. Returns None otherwise.
     """
-    return Branch.query.filter_by(FK_Establishment=establishment_id, PK_Branch=branch_id).first()
+    return Branch.query.filter_by(PK_Branch=branch_id).first()
 
 
 def get_branch_by_name(establishment_id, name):
@@ -200,18 +200,18 @@ def get_branch_by_address(establishment_id, address):
     return Branch.query.filter_by(FK_Establishment=establishment_id, address=address).first()
 
 
-def get_branch_by_email(establishment_id, email):
+def get_branch_by_email(email):
     """
     Returns the target branch
     """
-    return Branch.query.filter_by(FK_Establishment=establishment_id, Email=email).first()
+    return Branch.query.filter_by(Email=email).first()
 
 
-def get_branch_by_phone_number(establishemnt_id, phone_number):
+def get_branch_by_phone_number(phone_number):
     """
     Returns the target branch
     """
-    return Branch.query.filter_by(FK_Establishment=establishment_id, PhoneNumber=phone_number).first()
+    return Branch.query.filter_by(PhoneNumber=phone_number).first()
 
 
 def get_branch_by_gps_location(establishment_id, latitude, longitude):

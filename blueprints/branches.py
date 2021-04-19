@@ -71,7 +71,7 @@ def get_branch_by_id(establishment_id, branch_id):
 # POST:
 
 @branches_bp.route('/<int:establishment_id>/branches', methods=['POST'])
-# @jwt_required
+# @custom_decorator.establishment_required()
 def add_branch(establishment_id):
     """
     Expects the following JSON Object:

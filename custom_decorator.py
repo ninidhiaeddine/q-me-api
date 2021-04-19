@@ -5,7 +5,7 @@ from flask import jsonify
 
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
-    get_jwt_identity
+    get_jwt_identity, verify_jwt_in_request
 )
 
 
@@ -28,19 +28,17 @@ def establishment_required():
     return wrapper
 
 
-@app.route("/login", methods=["POST"])
-def login():
-    access_token = create_access_token(
-        "admin_user", additional_claims={"is_administrator": True}
-    )
-    return jsonify(access_token=access_token)
+def guest_required():
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            verify_jwt_in_request()
+            claims = get_jwt()
+            if claims["is_guest"]:
+                return fn(*args, **kwargs)
+            else:
+                return jsonify(msg="Guest status required"), 403
 
+        return decorator
 
-@app.route("/protected", methods=["GET"])
-@admin_required()
-def protected():
-    return jsonify(foo="bar")
-
-
-if __name__ == "__main__":
-    app.run()
+    return wrapper

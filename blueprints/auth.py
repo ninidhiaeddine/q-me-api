@@ -60,9 +60,12 @@ def login_guest():
     if error is None:
         session.clear()
         session['guest_id'] = guest_record.PK_Guest
+        access_token = create_access_token(
+            identity={'phone_number': guest.PhoneNumber}, additional_claims={"is_guest": True})
         return jsonify(
             status=200,
-            message="Guest logged in Successfully!"
+            message="Guest logged in Successfully!",
+            access_token=access_token
         )
     else:
         return jsonify(
@@ -113,8 +116,64 @@ def login_establishment():
         session.clear()
         session['establishment_id'] = establishment_record.PK_Establishment
         access_token = create_access_token(
-            identity={'email': email}, additional_claims={"is_administrator": True})
-        return {"access_token": access_token}, 200
+            identity={'email': email}, additional_claims={"is_establishment": True})
+        return jsonify(status=200,
+                       message="Establishment successfully logged in!",
+                       access_token=access_token)
+    else:
+        return jsonify(
+            status=400,
+            message=error
+        )
+
+
+@auth_bp.route('/branches', methods=['POST'])
+def login_branch():
+    """
+    Expects the following JSON Object:
+    {
+        "email" : "your branch email here",
+        "password" : "your branch password here"
+    }
+
+    Returns the following JSON Object if operation is successful:
+    {
+        "status" : 200,
+        "message" : "Branch logged in successfully!"
+    }
+    """
+
+    # initially, assume that there is no error
+    error = None
+
+    if error is None:
+        email = request.json.get('email')
+        password = request.json.get('password')
+
+    # verify input info
+    if not email:
+        error = "Missing email"
+    if not password:
+        error = "Missing password"
+
+    branch_record = dal.get_branch_by_email(email)
+
+    if branch_record is None:
+        error = 'Email not found, please register first'
+    elif not bcrypt.checkpw(password.encode('utf-8'), branch_record.Password.encode('utf-8')):
+        error = "Incorrect Password"
+
+    # start new session if everything is ok
+    if error is None:
+        session.clear()
+        session['branch_id'] = branch_record.PK_Branch
+        access_token = create_access_token(
+            identity={'email': email}, additional_claims={"is_branch": True})
+        return jsonify(
+            status=200,
+            message="Branch logged in Successfully!",
+            access_token=access_token
+        )
     else:
         return jsonify(
             status=400,
