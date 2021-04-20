@@ -276,11 +276,9 @@ class Queue(db.Model):
         # return tuple
         return (is_valid, message)
 
-      
     def add_qr(self, qr_str):
         self.QrCode = qr_str
 
-        
     def get_qr(self):
         return self.QrCode
 
@@ -330,7 +328,7 @@ class Token(db.Model):
         message = ""
 
         # verify fields:
-        
+
         if type(self.FK_Guest) is not int:
             message += "Guest Id is not valid (must be an integer). |"
 
@@ -339,7 +337,7 @@ class Token(db.Model):
 
         if self.Status != 0 and self.Status != 1 and self.Status != -1:
             message += "Status Value is not valid, must be either 1 or -1 or 0. |"
-            
+
         # finalize returned tuple:
         if message == "":
             is_valid = True
@@ -504,4 +502,48 @@ class Rating(db.Model):
         if type(self.Rating) is not float:
             message += "Rating format incorrect, must be float. | "
         if type(self.Comment) is not str:
-            message += "Comment format incorrect, must be text. | "    
+            message += "Comment format incorrect, must be text. | "
+
+
+class OTP(db.Model):
+    # Column names:
+    PK_OTP = db.Column(db.Integer, primary_key=True)
+    FK_Guest = db.Column(db.Integer, nullable=False)
+    Value = db.Column(db.String(60), nullable=False)
+
+    def __init__(self, guest_id, otp):
+        self.FK_Guest = guest_id
+        self.Value = otp
+
+    def serialize(self):
+        return {
+            'PK_OTP': self.PK_OTP,
+            'Guest_id': self.FK_Guest,
+            'Hashed_Value': self.Value
+        }
+
+    def update(new_otp):
+        self.FK_Guest = new_otp.FK_Guest
+        self.Value = new_otp.Value
+
+    def is_valid(self):
+        """
+        Returns a Tuple(is_valid, message)
+        """
+        message = ""
+
+        # verify fields:
+        if type(self.FK_Guest) is not int:
+            message += "Guest id should be integer "
+
+        # finalize returned tuple:
+        if message == "":
+            is_valid = True
+            message = "OK"
+        else:
+            is_valid = False
+            # remove last 3 characters as they have an unnecessary bar in them
+            message = message[:-3]
+
+        # return tuple
+        return (is_valid, message)

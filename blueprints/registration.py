@@ -1,8 +1,10 @@
 import json
 import bcrypt
-from models import Guest, Establishment, Branch
+from models import Guest, Establishment, Branch, OTP
 import dal  # import data access layer
 import helpers
+import sms
+import random
 
 from flask import (
     Blueprint, flash, request, session, jsonify
@@ -35,35 +37,32 @@ def register_guest():
         error = "Invalid JSON Object."
 
     if error is None:
-        # Hash password using bcrypt
-        hashed = bcrypt.hashpw(request.json.get(
-            'password').encode('utf-8'), bcrypt.gensalt())
-
         # map json object to class object
-        establishment = Establishment(
-            request.json.get('name'),
-            request.json.get('type'),
-            request.json.get('email'),
-            hashed,
-            request.json.get('phone_number')
-        )
+        guest = Guest(request.json.get('name'),
+                      request.json.get('phone_number'))
 
         # verify input info
-        is_valid_tuple = establishment.is_valid()
+        is_valid_tuple = guest.is_valid()
         if is_valid_tuple[0]:
-            if dal.get_establishment_by_email(establishment.Email) is not None:
-                error = 'Establishment with Email=\'{}\' is already registered.'.format(
-                    establishment.Email)
+            if dal.get_guest_by_phone_number(guest.PhoneNumber) is not None:
+                error = 'Guest with phone number=\'{}\' is already registered.'.format(
+                    guest.PhoneNumber)
         else:
             error = is_valid_tuple[1]
 
-    # add to database if everything is ok
-    if error is None:
-        dal.add_establishment(establishment)
-        return jsonify(
-            status=200,
-            message="Establishment Added to Database successfully!"
-        )
+        dal.add_guest(guest)
+
+        # generate otp_code
+        otp_code = random.randint(1000, 9999)
+        # create sms body
+        sms_body = 'Hello \'{}\'\nYour verification code is:\'{}\''.format(
+            guest.Name, otp_code)
+        # send OTP code through sms
+        sms.send_sms(guest.PhoneNumber, sms_body)
+        # post it on the db
+        otp = OTP(guest.PK_Guest, otp_code)
+        dal.add_otp(otp)
+
     else:
         return jsonify(
             status=400,

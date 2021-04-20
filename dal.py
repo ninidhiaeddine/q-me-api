@@ -1,7 +1,7 @@
 # Data Access Layer (Script)
 
-from werkzeug.security import check_password_hash, generate_password_hash
-from models import Guest, Establishment, Branch, Queue, Token, CovidInfection
+
+from models import Guest, Establishment, Branch, Queue, Token, CovidInfection, OTP
 
 # import database:
 from database import db
@@ -452,11 +452,11 @@ def delete_token_by_id(token_id):
         return False
 
 
-def get_covid_infections():
-    """
-    Returns the list of covid_infections
-    """
-    return CovidInfection.query.all()
+# def get_covid_infections():
+#     """
+#     Returns the list of covid_infections
+#     """
+#     return CovidInfection.query.all()
 
 
 # def get_covid_infection_by_id(id):
@@ -586,7 +586,7 @@ def dequeue_guest(queue_id):
 
 def close_queue(queue_id):
     """
-    Executes Db produce to close a given Queue.
+    Executes Db procedure to close a given Queue.
     Effect: All guests enqueuing in this Queue will be dequeued.
 
     Returns True if queue has been closed successfully.
@@ -600,3 +600,28 @@ def close_queue(queue_id):
         return True
     except:
         return False
+
+
+def add_otp(otp):
+    """
+    adds OTP object to its table
+    """
+    db.session.add(otp)
+    db.session.commit()
+
+
+def get_otp_by_guest_id(guest_id):
+    """ 
+    returns otp of a guest
+     """
+    return OTP.query.filter_by(FK_Guest=guest_id).first()
+
+
+def check_otp_dal(guest_id, input_otp):
+    """
+    Return a bool
+    """
+    record_otp = get_otp_by_guest_id(guest_id)
+
+    result = record_otp.Value == input_otp
+    return result
