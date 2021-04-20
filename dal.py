@@ -1,7 +1,7 @@
 # Data Access Layer (Script)
 
-from werkzeug.security import check_password_hash, generate_password_hash
-from models import Guest, Establishment, Branch, Queue, Token, CovidInfection
+
+from models import Guest, Establishment, Branch, Queue, Token, CovidInfection, OTP
 
 # import database:
 from database import db
@@ -356,7 +356,7 @@ def add_qr_to_queue(queue_id, qr_str):
     takes a string QR code and adds it to the database
     """
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
-    
+
     # add qr code to the queue:
     target_queue.add_qr(qr_str)
 
@@ -400,7 +400,6 @@ def get_token(queue_id, guest_id):
     Returns a token with a given queue id and guest id
     """
     return Token.query.filter_by(FK_Queue=queue_id, FK_Guest=guest_id).first()
-
 
 
 def add_token(token):
@@ -451,13 +450,13 @@ def delete_token_by_id(token_id):
         return True
     else:
         return False
-      
-      
- def get_covid_infections():
-    """
-    Returns the list of covid_infections
-    """
-    return CovidInfection.query.all()
+
+
+# def get_covid_infections():
+#     """
+#     Returns the list of covid_infections
+#     """
+#     return CovidInfection.query.all()
 
 
 # def get_covid_infection_by_id(id):
@@ -587,7 +586,7 @@ def dequeue_guest(queue_id):
 
 def close_queue(queue_id):
     """
-    Executes Db produce to close a given Queue.
+    Executes Db procedure to close a given Queue.
     Effect: All guests enqueuing in this Queue will be dequeued.
 
     Returns True if queue has been closed successfully.
@@ -601,3 +600,28 @@ def close_queue(queue_id):
         return True
     except:
         return False
+
+
+def add_otp(otp):
+    """
+    adds OTP object to its table
+    """
+    db.session.add(otp)
+    db.session.commit()
+
+
+def get_otp_by_guest_id(guest_id):
+    """ 
+    returns otp of a guest
+     """
+    return OTP.query.filter_by(FK_Guest=guest_id).first()
+
+
+def check_otp_dal(guest_id, input_otp):
+    """
+    Return a bool
+    """
+    record_otp = get_otp_by_guest_id(guest_id)
+
+    result = record_otp.Value == input_otp
+    return result

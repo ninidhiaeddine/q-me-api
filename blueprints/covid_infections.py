@@ -14,29 +14,30 @@ covid_infections_bp = Blueprint(
 
 # GET:
 
-@covid_infections_bp.route('', methods=['GET'])
-def get_covid_infections():
-    """
-    Does not expect any JSON object.
 
-    Returns the following JSON Object if operation is successful:
-    {
-        "status" : 200,
-        "message" : covid_infections_list
-    }
-    """
-    covid_infections_list = dal.get_covid_infections()
-    if len(covid_infections_list) > 0:
-        return jsonify(
-            status=200,
-            message=[CovidInfection.serialize()
-                     for covid_infection in covid_infections_list]
-        )
-    else:
-        return jsonify(
-            status=404,
-            message="List of Covid_infections is empty!"
-        )
+# @covid_infections_bp.route('', methods=['GET'])
+# def get_covid_infections():
+#     """
+#     Does not expect any JSON object.
+
+#     Returns the following JSON Object if operation is successful:
+#     {
+#         "status" : 200,
+#         "message" : covid_infections_list
+#     }
+#     """
+#     covid_infections_list = dal.get_covid_infections()
+#     if len(covid_infections_list) > 0:
+#         return jsonify(
+#             status=200,
+#             message=[CovidInfection.serialize()
+#                      for covid_infection in covid_infections_list]
+#         )
+#     else:
+#         return jsonify(
+#             status=404,
+#             message="List of Covid_infections is empty!"
+#         )
 
 
 # @covid_infections_bp.route('/<int:id>', methods=['GET'])
@@ -117,6 +118,7 @@ def get_covid_infections():
 #             status=400,
 #             message=error
 #         )
+
 
 # PUT:
 

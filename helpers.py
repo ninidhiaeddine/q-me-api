@@ -1,5 +1,9 @@
+import json
 import sms  # import SMS Module
 import dal  # import Data Access Layer
+import requests
+
+url = ""
 
 # Helper functions:
 
@@ -31,3 +35,20 @@ def send_sms_to_guest(guest_id, message_body):
         # get guest's phone number to be able to send the message
         target_phone_number = target_guest.PhoneNumber
         sms.send_sms(target_phone_number, message_body)
+
+
+def otp_checker(guest_id, input_otp):
+
+    url = "127.0.0.1:5000/OTP/check"
+
+    payload = json.dumps({
+        "guest_id": guest_id,
+        "input_otp": input_otp
+    })
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    return response.json.get("message")

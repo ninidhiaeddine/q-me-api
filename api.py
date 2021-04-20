@@ -28,6 +28,7 @@ from blueprints.operating_hours import operating_hours_bp
 from blueprints.feedback import feedback_bp
 from blueprints.contact_messages import contact_messages_bp
 from blueprints.covid_infections import covid_infections_bp
+from blueprints.OTP import OTP_bp
 
 
 # configure database URI
@@ -73,6 +74,7 @@ app.register_blueprint(branches_bp)
 app.register_blueprint(queues_bp)
 app.register_blueprint(tokens_bp)
 app.register_blueprint(covid_infections_bp)
+app.register_blueprint(OTP_bp)
 
 
 # TODO: Implement the following blueprints:
