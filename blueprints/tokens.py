@@ -1,7 +1,7 @@
 import json
 
 from flask import (
-    Blueprint, flash, request, session, jsonify
+    Blueprint, flash, request, session, jsonify, after_this_request
 )
 from mysocketio import socketio
 from flask_socketio import emit
@@ -26,6 +26,11 @@ def get_tokens(establishment_id, branch_id, queue_id):
         "message" : tokens_list
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     tokens_list = dal.get_tokens(queue_id)
     if len(tokens_list) > 0:
         return jsonify(
@@ -50,6 +55,11 @@ def get_token_by_id(establishment_id, branch_id, queue_id, token_id):
         "message" : token_with_id
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     token_with_id = dal.get_token_by_id(token_id)
     if token_with_id is not None:
         return jsonify(
@@ -86,6 +96,10 @@ def add_token(establishment_id, branch_id, queue_id):
         "message" : "Token Added to Database successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -154,6 +168,10 @@ def update_token_by_id(establishment_id, branch_id, queue_id, token_id):
         "message" : "Token Updated Successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -212,6 +230,11 @@ def delete_tokens(establishment_id, branch_id, queue_id):
         "message" : "All tokens have been deleted successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     dal.delete_tokens(queue_id)
     return jsonify(
         status=200,
@@ -231,6 +254,11 @@ def delete_token_by_id(establishment_id, branch_id, queue_id, token_id):
         "message" : "Token with Id={} have been deleted successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     found = dal.delete_token_by_id(token_id)
     if found:
         return jsonify(

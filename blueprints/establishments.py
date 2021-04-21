@@ -1,7 +1,7 @@
 import json
 
 from flask import (
-    Blueprint, flash, request, session, jsonify
+    Blueprint, flash, request, session, jsonify, after_this_request
 )
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -31,6 +31,11 @@ def get_establishments():
         "message" : establishments_list
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     establishments_list = dal.get_establishments()
     if len(establishments_list) > 0:
         return jsonify(
@@ -56,6 +61,11 @@ def get_establishment_by_id(id):
         "message" : establishment_with_id
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     establishment_with_id = dal.get_establishment_by_id(id)
     if establishment_with_id is not None:
         return jsonify(
@@ -71,7 +81,6 @@ def get_establishment_by_id(id):
 
 # POST:
 # Moved to register.py
-
 
 # PUT:
 
@@ -94,6 +103,10 @@ def update_establishment_by_id(id):
         "message" : "Establishment Updated Successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -156,6 +169,11 @@ def delete_establishments():
         "message" : "All establishments have been deleted successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     dal.delete_establishments()
     return jsonify(
         status=200,
@@ -174,6 +192,11 @@ def delete_establishment_by_id(id):
         "message" : "All Establishments have been deleted successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     found = dal.delete_establishment_by_id(id)
     if found:
         return jsonify(

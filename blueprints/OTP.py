@@ -1,6 +1,6 @@
 import json
 from flask import (
-    Blueprint, flash, request, session, jsonify)
+    Blueprint, flash, request, session, jsonify, after_this_request)
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity,
@@ -15,7 +15,7 @@ import sms
 import random
 
 
-OTP_bp = Blueprint('OTP', __name__, url_prefix='/OTP')
+OTP_bp = Blueprint('OTP', __name__, url_prefix='/otp')
 
 
 @OTP_bp.route('', methods=['POST'])
@@ -27,6 +27,11 @@ def add_otp():
         "otp":"The OTP code"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     error = None
     # verify JSON
     if not helpers.request_is_valid(request, keys_list=['guest_id', 'otp']):
@@ -56,7 +61,12 @@ def check_otp():
         "input_otp":"The OTP code input by the guest i.e the OTP we want to verify"
     }
     and returns a boolean if otp codes match
-     """
+    """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     result = False
     guest_id = request.json.get("guest_id")
     input_otp = request.json.get("input_otp")

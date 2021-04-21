@@ -1,7 +1,7 @@
 import json
 
 from flask import (
-    Blueprint, flash, request, session, jsonify
+    Blueprint, flash, request, session, jsonify, after_this_request
 )
 
 from flask_jwt_extended import (
@@ -32,6 +32,10 @@ def login_guest():
         "message" : "Guest logged in successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -89,6 +93,10 @@ def login_establishment():
         "message" : "Establishment logged in successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -142,6 +150,10 @@ def login_branch():
         "message" : "Branch logged in successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -183,6 +195,11 @@ def login_branch():
 
 @auth_bp.route('/logout', methods=['GET'])
 def logout():
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     session.clear()
     return jsonify(
         status=200,

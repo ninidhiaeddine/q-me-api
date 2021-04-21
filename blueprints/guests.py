@@ -1,7 +1,7 @@
 import json
 
 from flask import (
-    Blueprint, flash, request, session, jsonify
+    Blueprint, flash, request, session, jsonify, after_this_request
 )
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -29,6 +29,11 @@ def get_guests():
         "message" : guests_list
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     guests_list = dal.get_guests()
     if len(guests_list) > 0:
         return jsonify(
@@ -53,6 +58,11 @@ def get_guest_by_id(id):
         "message" : guest_with_id
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     guest_with_id = dal.get_guest_by_id(id)
     if guest_with_id is not None:
         return jsonify(
@@ -65,63 +75,11 @@ def get_guest_by_id(id):
             message="Guest with ID={} not found!".format(id)
         )
 
-
 # POST:
-
-@guests_bp.route('', methods=['POST'])
-def add_guest():
-    """
-    Expects the following JSON Object:
-    {
-        "name" : "your name here",
-        "phone_number" : "your phone number here"
-    }
-
-    Returns the following JSON Object if operation is successful:
-    {
-        "status" : 200,
-        "message" : "Guest Added to Database successfully!"
-    }
-    """
-
-    # initially, assume that there is no error
-    error = None
-
-    # verify expected JSON:
-    if not helpers.request_is_valid(request, keys_list=['name', 'phone_number']):
-        error = "Invalid JSON Object."
-
-    if error is None:
-        # map json object to class object
-        guest = Guest(
-            request.json.get('name'),
-            request.json.get('phone_number')
-        )
-
-        # verify input info
-        is_valid_tuple = guest.is_valid()
-        if is_valid_tuple[0]:
-            if dal.get_guest_by_phone_number(guest.PhoneNumber) is not None:
-                error = 'Guest with Phone Number \'{}\' is already registered.'.format(
-                    guest.phone_number)
-        else:
-            error = is_valid_tuple[1]
-
-    # add to database if everything is ok
-    if error is None:
-        dal.add_guest(guest)
-        return jsonify(
-            status=200,
-            message="Guest Added to Database successfully!"
-        )
-    else:
-        return jsonify(
-            status=400,
-            message=error
-        )
-
+# Moved to register.py
 
 # PUT:
+
 
 @guests_bp.route('/<int:id>', methods=['PUT'])
 def update_guest_by_id(id):
@@ -138,6 +96,10 @@ def update_guest_by_id(id):
         "message" : "Guest Updated Successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -192,6 +154,11 @@ def delete_guests():
         "message" : "All guests have been deleted successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     dal.delete_guests()
     return jsonify(
         status=200,
@@ -210,6 +177,11 @@ def delete_guest_by_id(id):
         "message" : "All guests have been deleted successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     found = dal.delete_guest_by_id(id)
     if found:
         return jsonify(

@@ -7,11 +7,12 @@ import sms
 import random
 
 from flask import (
-    Blueprint, flash, request, session, jsonify
+    Blueprint, flash, request, session, jsonify, after_this_request
 )
 
 
-registration_bp = Blueprint('registration', __name__, url_prefix='/register')
+registration_bp = Blueprint(
+    'registration', __name__, url_prefix='/registration')
 
 
 @registration_bp.route('/guests', methods=['POST'])
@@ -29,6 +30,10 @@ def register_guest():
         "message" : "Guest Added to Database successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -63,6 +68,11 @@ def register_guest():
         otp = OTP(guest.PK_Guest, otp_code)
         dal.add_otp(otp)
 
+        return jsonify(
+            status=200,
+            message="OTP sent, you will be redirected to enter the OTP"
+        )
+
     else:
         return jsonify(
             status=400,
@@ -88,6 +98,10 @@ def register_establishment():
         "message" : "Establishment Added to Database successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None

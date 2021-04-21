@@ -1,7 +1,7 @@
 import json
 
 from flask import (
-    Blueprint, flash, request, session, jsonify
+    Blueprint, flash, request, session, jsonify, after_this_request
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import Queue
@@ -25,6 +25,11 @@ def get_queues(establishment_id, branch_id):
         "message" : queues_list
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     queues_list = dal.get_queues(branch_id)
     if len(queues_list) > 0:
         return jsonify(
@@ -50,6 +55,11 @@ def get_queue_by_id(establishment_id, branch_id, queue_id):
         "message" : branch_with_id
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     queue_with_id = dal.get_queue_by_id(queue_id)
     if queue_with_id is not None:
         return jsonify(
@@ -80,6 +90,10 @@ def add_queue(establishment_id, branch_id):
         "message" : "Branch Added to Database successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -136,6 +150,10 @@ def update_queue_by_id(establishment_id, branch_id, queue_id):
         "message" : "Branch Updated Successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -191,6 +209,11 @@ def delete_queues(establishment_id, branch_id):
         "message" : "All queues have been deleted successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     dal.delete_queues(branch_id)
     return jsonify(
         status=200,
@@ -210,6 +233,11 @@ def delete_queue_by_id(establishment_id, branch_id, queue_id):
         "message" : "Queue with Id={} have been deleted successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     found = dal.delete_queue_by_id(queue_id)
     if found:
         return jsonify(
@@ -238,6 +266,10 @@ def generate_qr_for_queue(establishment_id, branch_id, queue_id):
         "message" : "QR Code has been generated and added  successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     found = dal.get_queue_by_id(queue_id)
     if found:
@@ -263,7 +295,7 @@ def generate_qr_for_queue(establishment_id, branch_id, queue_id):
                 queue_id)
         )
 
-# Removed get_qr_for_queue() since we can retrun the Queue object which contains the QR code inside of it.
+# Removed get_qr_for_queue() since we can return the Queue object which contains the QR code inside of it.
 
 # @queues_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/qr', methods=['GET'])
 # def get_qr_for_queue(establishment_id, branch_id, queue_id):

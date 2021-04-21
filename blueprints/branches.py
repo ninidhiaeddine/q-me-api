@@ -1,7 +1,7 @@
 import json
 
 from flask import (
-    Blueprint, flash, request, session, jsonify
+    Blueprint, flash, request, session, jsonify, after_this_request
 )
 from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
@@ -31,6 +31,11 @@ def get_branches(establishment_id):
         "message" : branches_list
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     branches_list = dal.get_branches(establishment_id)
     if len(branches_list) > 0:
         return jsonify(
@@ -55,6 +60,11 @@ def get_branch_by_id(establishment_id, branch_id):
         "message" : branch_with_id
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     branch_with_id = dal.get_branch_by_id(establishment_id, branch_id)
     if branch_with_id is not None:
         return jsonify(
@@ -90,6 +100,10 @@ def add_branch(establishment_id):
         "message" : "Branch Added to Database successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -158,6 +172,10 @@ def update_branch_by_id(establishment_id, branch_id):
         "message" : "Branch Updated Successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
 
     # initially, assume that there is no error
     error = None
@@ -217,6 +235,11 @@ def delete_branches(establishment_id):
         "message" : "All branches have been deleted successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     dal.delete_branches(establishment_id)
     return jsonify(
         status=200,
@@ -237,6 +260,11 @@ def delete_branch_by_id(establishment_id, branch_id):
         "message" : "Branch with Id={} have been deleted successfully!"
     }
     """
+    @after_this_request
+    def add_header(response):
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
+
     found = dal.delete_branch_by_id(establishment_id, branch_id)
     if found:
         return jsonify(
