@@ -29,7 +29,11 @@ def login_guest():
     Returns the following JSON Object if operation is successful:
     {
         "status" : 200,
-        "message" : "Guest logged in successfully!"
+        "message" : {
+            "content": "Guest logged in successfully!",
+            "guest_id": (int),
+            "access_token": "access_token"
+        }
     }
     """
     @after_this_request
@@ -66,10 +70,15 @@ def login_guest():
         session['guest_id'] = guest_record.PK_Guest
         access_token = create_access_token(
             identity={'phone_number': guest.PhoneNumber}, additional_claims={"is_guest": True})
+
         return jsonify(
             status=200,
-            message="Guest logged in Successfully!",
-            access_token=access_token
+            message={
+                "content": "Guest logged in Successfully!",
+                "guest_id": guest_record.PK_Guest,
+                "access_token": access_token
+            }
+
         )
     else:
         return jsonify(
@@ -90,7 +99,11 @@ def login_establishment():
     Returns the following JSON Object if operation is successful:
     {
         "status" : 200,
-        "message" : "Establishment logged in successfully!"
+        "message" : {
+            "content": "Establishment logged in successfully!",
+            "establishment_id": (int),
+            "access_token": "access_token"
+        }
     }
     """
     @after_this_request
@@ -125,9 +138,13 @@ def login_establishment():
         session['establishment_id'] = establishment_record.PK_Establishment
         access_token = create_access_token(
             identity={'email': email}, additional_claims={"is_establishment": True})
+
         return jsonify(status=200,
-                       message="Establishment successfully logged in!",
-                       access_token=access_token)
+                       message={
+                           "content": "Establishment successfully logged in!",
+                           "establishment_id": establishment_record.PK_Establishment,
+                           "access_token": access_token
+                       })
     else:
         return jsonify(
             status=400,
@@ -147,7 +164,11 @@ def login_branch():
     Returns the following JSON Object if operation is successful:
     {
         "status" : 200,
-        "message" : "Branch logged in successfully!"
+        "message" : {
+            "content" : "Branch logged in successfully!",
+            "branch_id": (int),
+            "access_token": "access_token"
+        }
     }
     """
     @after_this_request
@@ -181,11 +202,14 @@ def login_branch():
         session['branch_id'] = branch_record.PK_Branch
         access_token = create_access_token(
             identity={'email': email}, additional_claims={"is_branch": True})
+
         return jsonify(
             status=200,
-            message="Branch logged in Successfully!",
-            access_token=access_token
-        )
+            message={
+                "content": "Branch logged in Successfully!",
+                "branch_id": branch_record.PK_Branch,
+                "access_token": access_token
+            })
     else:
         return jsonify(
             status=400,

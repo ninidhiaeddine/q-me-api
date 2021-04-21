@@ -11,12 +11,16 @@ url = ""
 def request_is_valid(request, keys_list):
     """
     Returns True if all keys in 'keys_list'
-    are within the 'request' json body.
+    are within the 'request' json body
+    AND request values are not empty.
 
     Returns False otherwise.
     """
     for key in keys_list:
         if key not in request.json:
+            return False
+    for value in request.json.values():
+        if not value:
             return False
     return True
 
