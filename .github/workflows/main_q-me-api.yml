@@ -14,8 +14,10 @@ jobs:
 
     steps:
     # checkout the repo
-    - name: 'Checkout Github Action'
-      uses: actions/checkout@master
+    - name: 'Checkout Github Main Branch'
+      uses: actions/checkout@v2
+      with: 
+        ref: main
 
 
     - name: Set up Python version
