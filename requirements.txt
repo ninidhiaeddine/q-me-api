@@ -35,7 +35,6 @@ pip-upgrader==1.4.15
 pluggy==0.13.1
 py==1.10.0
 pycparser==2.20
-PyJWT==1.7.1
 pyodbc==4.0.30
 pyparsing==2.4.7
 pytest==6.2.2
