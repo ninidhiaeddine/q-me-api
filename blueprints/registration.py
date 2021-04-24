@@ -27,7 +27,10 @@ def register_guest():
     Returns the following JSON Object if operation is successful:
     {
         "status" : 200,
-        "message" : "Guest Added to Database successfully!"
+        "message" : {
+            "content": "OTP sent, you will be redirected to enter the OTP.",
+            "guest_id" : (int)
+        }
     }
     """
     @after_this_request
@@ -55,22 +58,31 @@ def register_guest():
         else:
             error = is_valid_tuple[1]
 
+    # add to database if everything is ok
+    if error is None:
         dal.add_guest(guest)
 
         # generate otp_code
         otp_code = random.randint(1000, 9999)
         # create sms body
-        sms_body = 'Hello \'{}\'\nYour verification code is:\'{}\''.format(
+        sms_body = 'Hello \'{}\'.\nYour verification code is:\'{}\''.format(
             guest.Name, otp_code)
         # send OTP code through sms
         sms.send_sms(guest.PhoneNumber, sms_body)
+
+        # get guest ID after adding:
+        guest = dal.get_guest_by_phone_number(request.json.get('phone_number'))
+
         # post it on the db
         otp = OTP(guest.PK_Guest, otp_code)
         dal.add_otp(otp)
 
         return jsonify(
             status=200,
-            message="OTP sent, you will be redirected to enter the OTP"
+            message={
+                "content": "OTP sent, you will be redirected to enter the OTP",
+                "guest_id": guest.PK_Guest
+            }
         )
 
     else:
@@ -95,7 +107,10 @@ def register_establishment():
     Returns the following JSON Object if operation is successful:
     {
         "status" : 200,
-        "message" : "Establishment Added to Database successfully!"
+        "message" : {
+            "content" : "Establishment Added to Database successfully!",
+            "establishment_id": (int)
+        }
     }
     """
     @after_this_request
@@ -135,9 +150,17 @@ def register_establishment():
     # add to database if everything is ok
     if error is None:
         dal.add_establishment(establishment)
+
+        # get id:
+        establishment_id = dal.get_establishment_by_email(
+            establishment.Email).PK_Establishment
+
         return jsonify(
             status=200,
-            message="Establishment Added to Database successfully!"
+            message={
+                "content": "Establishment Added to Database successfully!",
+                "establishment_id": establishment_id
+            }
         )
     else:
         return jsonify(

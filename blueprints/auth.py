@@ -59,7 +59,10 @@ def login_guest():
         is_valid_tuple = guest.is_valid()
         if is_valid_tuple[0]:
             guest_record = dal.get_guest_by_phone_number(guest.PhoneNumber)
-            if guest_record is None or guest_record.Name != guest.Name:
+
+            if guest_record is None:
+                error = 'Guest not registered. Please register before logging in.'
+            elif guest_record.Name != guest.Name:
                 error = 'Incorrect Guest\'s Credentials.'
         else:
             error = is_valid_tuple[1]
@@ -117,27 +120,34 @@ def login_establishment():
     if not helpers.request_is_valid(request, keys_list=['email', 'password']):
         error = "Invalid JSON Object."
 
-    email = request.json.get('email')
-    password = request.json.get('password')
+    if error is None:
+        # map json object to class object
+        establishment = Establishment(
+            'N/A',
+            0,
+            request.json.get('email'),
+            request.json.get('password'),
+            '+'
+        )
 
-    if not email:
-        error = "Missing email"
-    if not password:
-        error = "Missing password"
+        # verify input info
+        is_valid_tuple = establishment.is_valid()
+        if is_valid_tuple[0]:
+            establishment_record = dal.get_establishment_by_email(
+                establishment.Email)
 
-    establishment_record = dal.get_establishment_by_email(email)
-
-    if not establishment_record:
-        error = "Email not registered, please register before logging in"
-
-    if not bcrypt.checkpw(password.encode('utf-8'), establishment_record.Password.encode('utf-8')):
-        error = "Incorrect Password"
+            if establishment_record is None:
+                error = "Establishment not registered. Please register before logging in"
+            elif not bcrypt.checkpw(establishment.Password.encode('utf-8'), establishment_record.Password.encode('utf-8')):
+                error = 'Incorrect Establishment\'s Credentials.'
+        else:
+            error = is_valid_tuple[1]
 
     if error is None:
         session.clear()
         session['establishment_id'] = establishment_record.PK_Establishment
         access_token = create_access_token(
-            identity={'email': email}, additional_claims={"is_establishment": True})
+            identity={'email': establishment_record.Email}, additional_claims={"is_establishment": True})
 
         return jsonify(status=200,
                        message={
@@ -179,29 +189,36 @@ def login_branch():
     # initially, assume that there is no error
     error = None
 
+    if not helpers.request_is_valid(request, keys_list=['email', 'password']):
+        error = "Invalid JSON Object."
+
     if error is None:
-        email = request.json.get('email')
-        password = request.json.get('password')
+        # map json object to class object
+        branch = Branch(
+            -1,
+            "N/A",
+            request.json.get('email'),
+            request.json.get('password')
+        )
 
-    # verify input info
-    if not email:
-        error = "Missing email"
-    if not password:
-        error = "Missing password"
+        # verify input info
+        is_valid_tuple = branch.is_valid()
+        if is_valid_tuple[0]:
+            branch_record = dal.get_branch_by_email(branch.Email)
 
-    branch_record = dal.get_branch_by_email(email)
-
-    if branch_record is None:
-        error = 'Email not found, please register first'
-    elif not bcrypt.checkpw(password.encode('utf-8'), branch_record.Password.encode('utf-8')):
-        error = "Incorrect Password"
+            if branch_record is None:
+                error = "Branch not registered. Please add branch from your establishment before logging in"
+            elif not bcrypt.checkpw(branch.Password.encode('utf-8'), branch_record.Password.encode('utf-8')):
+                error = 'Incorrect Branch\'s Credentials.'
+        else:
+            error = is_valid_tuple[1]
 
     # start new session if everything is ok
     if error is None:
         session.clear()
         session['branch_id'] = branch_record.PK_Branch
         access_token = create_access_token(
-            identity={'email': email}, additional_claims={"is_branch": True})
+            identity={'email': branch_record.Email}, additional_claims={"is_branch": True})
 
         return jsonify(
             status=200,

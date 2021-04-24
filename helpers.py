@@ -20,7 +20,7 @@ def request_is_valid(request, keys_list):
         if key not in request.json:
             return False
     for value in request.json.values():
-        if not value:
+        if len(str(value)) == 0:
             return False
     return True
 

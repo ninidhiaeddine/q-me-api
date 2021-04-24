@@ -110,6 +110,8 @@ class Establishment(db.Model):
 
         if type(self.Type) is not int:
             message += "Type is invalid (must be an int). | "
+        elif self.Type < 0:
+            message += "Type is invalid (must be >= 0). | "
 
         if type(self.Email) is not str:
             message += "Email is invalid (must be a string). | "

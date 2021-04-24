@@ -15,16 +15,16 @@ import sms
 import random
 
 
-OTP_bp = Blueprint('OTP', __name__, url_prefix='/otp')
+otp_bp = Blueprint('otp', __name__, url_prefix='/otp')
 
 
-@OTP_bp.route('', methods=['POST'])
+@otp_bp.route('', methods=['POST'])
 def add_otp():
     """
     expects a JSON object"
     {
-        "guest_id":"id of guest trying to enter the OTP"
-        "otp":"The OTP code"
+        "guest_id": "id of guest trying to enter the OTP"
+        "otp": "The OTP code"
     }
     """
     @after_this_request
@@ -42,23 +42,30 @@ def add_otp():
         # hashed_otp_value = bcrypt.hashpw(request.json.get(
         #     'otp').encode('utf-8'), bcrypt.gensalt())
         unhashed_otp_value = request.json.get('otp')
+
         # map json object to class object
         otp = OTP(
             request.json.get('guest_id'),
             unhashed_otp_value
         )
+
+        # add to db:
         dal.add_otp(otp)
-    return jsonify(status=200,
-                   message="OTP added susfully")
+
+        return jsonify(status=200,
+                       message="OTP added sucessfully")
+    else:
+        return jsonify(status=400,
+                       message=error)
 
 
-@OTP_bp.route('/check', methods=['POST'])
+@otp_bp.route('/check', methods=['POST'])
 def check_otp():
     """
     Expects the follwoing JSON obj:
     {
-        "guest_id":"id of guest trying to enter the OTP"
-        "input_otp":"The OTP code input by the guest i.e the OTP we want to verify"
+        "guest_id": "id of guest trying to enter the OTP"
+        "otp": "The OTP code input by the guest i.e the OTP we want to verify"
     }
     and returns a boolean if otp codes match
     """
@@ -69,11 +76,11 @@ def check_otp():
 
     result = False
     guest_id = request.json.get("guest_id")
-    input_otp = request.json.get("input_otp")
+    otp = request.json.get("otp")
 
     guest = dal.get_guest_by_id(guest_id)
 
-    if dal.check_otp_dal(guest_id, input_otp):
+    if dal.check_otp_dal(guest_id, otp):
         result = True
         session.clear()
         session['guest_id'] = guest.PK_Guest
@@ -84,5 +91,5 @@ def check_otp():
                        status=200)
     else:
         return jsonify(result=result,
-                       message="OTP Invalid!",
+                       message="Invalid OTP!",
                        status=401)
