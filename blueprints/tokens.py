@@ -93,7 +93,10 @@ def add_token(establishment_id, branch_id, queue_id):
     Returns the following JSON Object if operation is successful:
     {
         "status" : 200,
-        "message" : "Token Added to Database successfully!"
+        "message" : {
+            "content" : "Token Added to Database successfully!",
+            "queue_id" : (int)
+        }
     }
     """
     @after_this_request
@@ -141,7 +144,10 @@ def add_token(establishment_id, branch_id, queue_id):
         dal.add_token(token)
         return jsonify(
             status=200,
-            message="Token Added to Database successfully!"
+            message={
+                "content": "Token Added to Database successfully!",
+                "queue_id": queue_id
+            }
         )
     else:
         return jsonify(
