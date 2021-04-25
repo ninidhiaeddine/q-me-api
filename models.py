@@ -236,12 +236,18 @@ class Queue(db.Model):
         self.ApproximateTimeOfService = ApproximateTimeOfService
 
     def serialize(self):
+        if self.QrCode is not None:
+            decoded_qr_code = self.QrCode.decode('utf-8')
+        else:
+            decoded_qr_code = None
+
         return {
             'PK_Queue': self.PK_Queue,
             'FK_Branch': self.FK_Branch,
             'Name': self.Name,
             'ApproximateTimeOfService': self.ApproximateTimeOfService,
-            'QrCode': self.QrCode
+            'QrCode': decoded_qr_code,
+            'NumberOfPeopleEnqueuing': 0
         }
 
     def update(new_queue):
@@ -280,9 +286,6 @@ class Queue(db.Model):
 
     def add_qr(self, qr_str):
         self.QrCode = qr_str
-
-    def get_qr(self):
-        return self.QrCode
 
 
 class Token(db.Model):

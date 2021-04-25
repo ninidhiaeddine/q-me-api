@@ -1,4 +1,4 @@
-#import png
+import png
 import qrcode
 import base64
 from io import BytesIO
@@ -39,7 +39,7 @@ def generate_qr_for_queue(establishment_id, branch_id, queue_id):
 # img is PIL.Image.Image object, as returned from the QR generator
 def image_to_base64(img):
     output_buffer = BytesIO()
-    img.save(output_buffer, format='JPEG')
+    img.save(output_buffer, format='PNG')
     byte_data = output_buffer.getvalue()
     base64_str = base64.b64encode(byte_data)
     return base64_str

@@ -31,10 +31,18 @@ def get_queues(establishment_id, branch_id):
         return response
 
     queues_list = dal.get_queues(branch_id)
+    result = []
+    # update number of people enqueeing info inside the queue:
+    for queue in queues_list:
+        serialize_updated_queue = queue.serialize()
+        serialize_updated_queue['NumberOfPeopleEnqueuing'] = dal.get_people_enqueuing_count(
+            queue.PK_Queue)
+        result.append(serialize_updated_queue)
+
     if len(queues_list) > 0:
         return jsonify(
             status=200,
-            message=[queue.serialize() for queue in queues_list]
+            message=result
         )
     else:
         return jsonify(
@@ -52,7 +60,7 @@ def get_queue_by_id(establishment_id, branch_id, queue_id):
     Returns the following JSON Object if operation is successful:
     {
         "status" : 200, 
-        "message" : branch_with_id
+        "message" : queue_with_id
     }
     """
     @after_this_request
@@ -61,10 +69,16 @@ def get_queue_by_id(establishment_id, branch_id, queue_id):
         return response
 
     queue_with_id = dal.get_queue_by_id(queue_id)
+
+    # update number of people enqueeing info inside the queue:
+    serialize_updated_queue = queue_with_id.serialize()
+    serialize_updated_queue['NumberOfPeopleEnqueuing'] = dal.get_people_enqueuing_count(
+        queue_id)
+
     if queue_with_id is not None:
         return jsonify(
             status=200,
-            message=queue_with_id.serialize()
+            message=serialize_updated_queue
         )
     else:
         return jsonify(
@@ -114,7 +128,7 @@ def add_queue(establishment_id, branch_id):
         is_valid_tuple = queue.is_valid()
         if is_valid_tuple[0]:
             # Verify Referential Integrity
-            if dal.get_branch_by_id(establishment_id, branch_id) is None:
+            if dal.get_branch_by_id(branch_id) is None:
                 error = 'Branch with ID={} does not exist. Impossible to add this queue.'.format(
                     branch_id)
         else:
@@ -273,6 +287,7 @@ def generate_qr_for_queue(establishment_id, branch_id, queue_id):
 
     found = dal.get_queue_by_id(queue_id)
     if found:
+        print("Received values: ", establishment_id, branch_id, queue_id)
         # generate QR Code:
         qr_code = qr.generate_qr_for_queue(
             establishment_id, branch_id, queue_id)
@@ -294,6 +309,7 @@ def generate_qr_for_queue(establishment_id, branch_id, queue_id):
             message="Queue with ID={} not found. No changes occured!".format(
                 queue_id)
         )
+
 
 # Removed get_qr_for_queue() since we can return the Queue object which contains the QR code inside of it.
 

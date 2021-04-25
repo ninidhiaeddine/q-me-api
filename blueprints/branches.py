@@ -20,7 +20,7 @@ branches_bp = Blueprint('branches', __name__, url_prefix='/establishments')
 # GET:
 
 @branches_bp.route('/<int:establishment_id>/branches', methods=['GET'])
-@custom_decorator.establishment_required()
+# @custom_decorator.establishment_required()
 def get_branches(establishment_id):
     """
     Does not expect any JSON object.
@@ -65,7 +65,7 @@ def get_branch_by_id(establishment_id, branch_id):
         response.headers.add('Access-Control-Allow-Origin', '*')
         return response
 
-    branch_with_id = dal.get_branch_by_id(establishment_id, branch_id)
+    branch_with_id = dal.get_branch_by_id(branch_id)
     if branch_with_id is not None:
         return jsonify(
             status=200,

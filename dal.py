@@ -353,15 +353,16 @@ def delete_queue_by_id(queue_id):
 
 def add_qr_to_queue(queue_id, qr_str):
     """
-    takes a string QR code and adds it to the database
+    Takes a string QR code and adds it to the database.
     """
     target_queue = Queue.query.filter_by(PK_Queue=queue_id).first()
 
-    # add qr code to the queue:
-    target_queue.add_qr(qr_str)
+    if target_queue is not None:
+        # add qr code to the queue:
+        target_queue.add_qr(qr_str)
 
-    # commit the changes:
-    db.session.commit()
+        # commit the changes:
+        db.session.commit()
 
 
 def get_qr_by_queue_id(queue_id):
