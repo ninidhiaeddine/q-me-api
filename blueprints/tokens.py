@@ -280,9 +280,11 @@ def delete_token_by_id(establishment_id, branch_id, queue_id, token_id):
         )
 
 
-# Special Endpoints (GET):
+# Special Endpoints (POST):
 
-@tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens/info', methods=['GET'])
+# BAD DESIGN HERE (I am aware of it) - POST Method but it just gets you information
+
+@tokens_bp.route('/<int:establishment_id>/branches/<int:branch_id>/queues/<int:queue_id>/tokens/info', methods=['POST'])
 def get_info(establishment_id, branch_id, queue_id):
     """
     {
